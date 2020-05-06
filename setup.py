@@ -3,7 +3,7 @@
 import re
 import setuptools
 
-VERSIONFILE = "py6x/_version.py"
+VERSIONFILE = "correct6x/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(VSRE, verstrline, re.M)

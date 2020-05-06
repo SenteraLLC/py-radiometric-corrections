@@ -18,6 +18,5 @@ dependencies:
   - pandas
   - tqdm
   # subpackage dependencies
-  -
   # private dependencies
   - pip:
