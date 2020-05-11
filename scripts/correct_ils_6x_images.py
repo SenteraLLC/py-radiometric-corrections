@@ -187,7 +187,7 @@ def move_corrected_images(image_df):
     image_df.apply(lambda row: _move_images(row), axis=1)
 
 
-def correct_6x_images(input_path, output_path, no_ils_correct, delete_original, exiftool_path):
+def correct_ils_6x_images(input_path, output_path, no_ils_correct, delete_original, exiftool_path):
 
     def _flag_format(flag):
         if flag:
@@ -239,4 +239,4 @@ if __name__ == '__main__':
                              "raised.")
 
     args = parser.parse_args()
-    correct_6x_images(**vars(args))
+    correct_ils_6x_images(**vars(args))

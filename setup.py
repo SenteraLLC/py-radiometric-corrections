@@ -23,6 +23,7 @@ setuptools.setup(
         "tifffile",
         "pandas",
         "tqdm",
+        "opencv-contrib-python"
     ],
     extras_require={
         "dev": ["pytest", "sphinx_rtd_theme", "pre-commit", "m2r", "sphinx"],
