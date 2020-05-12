@@ -1,5 +1,7 @@
 .idea
 __pycache__/
+build/
 
 *.egg*
 *.pyc
+*.spec
