@@ -1,6 +1,8 @@
 .idea
 __pycache__/
+build/
 .vscode
 
 *.egg*
 *.pyc
+*.spec

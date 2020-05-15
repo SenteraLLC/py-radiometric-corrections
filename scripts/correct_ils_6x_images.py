@@ -195,6 +195,9 @@ def correct_ils_6x_images(input_path, output_path, no_ils_correct, delete_origin
         else:
             return "Disabled"
 
+    if not exiftool_path:
+        exiftool_path = os.path.join(os.path.dirname(os.getcwd()), 'exiftool', 'exiftool.exe')
+
     logger.info("ILS corrections: %s", _flag_format(not no_ils_correct))
     logger.info("Delete original: %s", _flag_format(delete_original))
 
@@ -234,9 +237,8 @@ if __name__ == '__main__':
                         help='Overwrite original 12-bit images with the corrected versions. If selected, corrected '
                              'images are renamed to their original names. If not, an extension is added.')
     parser.add_argument('--exiftool_path', '-e', default=None,
-                        help="Path to ExifTool executable. If not passed, the script will search the user's path. "
-                             "ExifTool is required for the conversion; if no installation is found, an error will be "
-                             "raised.")
+                        help="Path to ExifTool executable. ExifTool is required for the conversion; if not passed, "
+                             "the script will use a bundled ExifTool executable.")
 
     args = parser.parse_args()
     correct_ils_6x_images(**vars(args))
