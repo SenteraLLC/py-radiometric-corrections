@@ -39,4 +39,18 @@ Library to perform various corrections on native 6X imagery.
         >> pipenv run python
         >> import correct6x
         
-If no errors appear, the **correct6x** library should be installed correctly
+If no errors appear, the **correct6x** library should be installed correctly.
+
+### Usage
+The imagery correction in this repository can be used via:
+* Importing the various library functions defined in the package
+* Running the pre-defined scripts with a Python installation of version 3.6 or above
+* Running the standalone executable on the command line
+
+#### Executable Usage
+The executable simply wraps the `correct_ils_6x_images.py` script, and exposes the same set of command line options.
+To use, navigate to the location of the executable in a terminal window and run 
+
+        >> "6X Imagery Corrector.exe" -h
+        
+This will print the command line argument list, as well as help messages explaining each argument.
