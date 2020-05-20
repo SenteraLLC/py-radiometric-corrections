@@ -16,7 +16,8 @@ import numpy as np
 from glob import glob
 from PIL import Image
 
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 
 UNNEEDED_TAGS = [
     'ImageWidth',
@@ -161,6 +162,7 @@ def adjust_and_write_image_values(image_df, no_ils_correct):
 
 
 def copy_exif_metadata(input_path, exiftool_path):
+    logger.info("Writing EXIF data...")
     with exiftool.ExifTool(executable_=exiftool_path) as et:
         et.execute(b"-overwrite_original",
                    b"-r",
@@ -196,7 +198,7 @@ def correct_ils_6x_images(input_path, output_path, no_ils_correct, delete_origin
             return "Disabled"
 
     if not exiftool_path:
-        exiftool_path = os.path.join(os.path.dirname(os.getcwd()), 'exiftool', 'exiftool.exe')
+        exiftool_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'exiftool', 'exiftool.exe')
 
     logger.info("ILS corrections: %s", _flag_format(not no_ils_correct))
     logger.info("Delete original: %s", _flag_format(delete_original))
