@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import re
+import sys
 
 # The "unofficial" supported version:
 import exiftool.pyexiftool as exiftool
@@ -47,7 +48,7 @@ def set_output_names(input_path, output_path):
     image_df = pd.DataFrame()
 
     image_df['image_path'] = glob(input_path + '/**/*.tif', recursive=True)
-    image_df['output_path'] = image_df.image_path.str.replace(input_path, output_path)
+    image_df['output_path'] = image_df.image_path.str.replace(input_path, output_path, regex=False)
 
     return image_df
 
@@ -163,14 +164,19 @@ def adjust_and_write_image_values(image_df, no_ils_correct):
 
 def copy_exif_metadata(input_path, exiftool_path):
     logger.info("Writing EXIF data...")
-    with exiftool.ExifTool(executable_=exiftool_path) as et:
-        et.execute(b"-overwrite_original",
-                   b"-r",
-                   b"-TagsFromFile",
-                   exiftool.fsencode(os.path.join('%d', '%-.4f.tif')),
-                   exiftool.fsencode(input_path),
-                   b"-gps:all",
-                   b"-exif:all")
+    try:
+        with exiftool.ExifTool(executable_=exiftool_path) as et:
+            et.execute(b"-overwrite_original",
+                       b"-r",
+                       b"-TagsFromFile",
+                       exiftool.fsencode(os.path.join('%d', '%-.4f.tif')),
+                       exiftool.fsencode(input_path),
+                       b"-gps:all",
+                       b"-exif:all")
+    except AttributeError:
+        for file in glob(input_path + '/**/*_f32.tif', recursive=True):
+            os.remove(file)
+        raise FileNotFoundError("Couldn't find ExifTool executable.")
 
 
 def delete_all_originals(image_df):
@@ -198,7 +204,16 @@ def correct_ils_6x_images(input_path, output_path, no_ils_correct, delete_origin
             return "Disabled"
 
     if not exiftool_path:
-        exiftool_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'exiftool', 'exiftool.exe')
+        if getattr(sys, 'frozen', False):
+            # If the application is run as a bundle, the PyInstaller bootloader
+            # extends the sys module by a flag frozen=True and sets the app
+            # path into variable _MEIPASS'.
+            exiftool_path = os.path.join(sys._MEIPASS, 'exiftool.exe')
+        else:
+            exiftool_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                         'exiftool',
+                                         'exiftool.exe')
+        logger.info("Using bundled executable. Setting ExifTool path to %s", exiftool_path)
 
     logger.info("ILS corrections: %s", _flag_format(not no_ils_correct))
     logger.info("Delete original: %s", _flag_format(delete_original))
