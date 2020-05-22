@@ -1,6 +1,8 @@
 import cv2 as cv
 import numpy as np
+import pandas as pd
 import glob
+from imgparse import imgparse
 
 from PIL import Image
 
@@ -82,13 +84,14 @@ def extract_panel_bounds(image):
     return None
 
 
-def get_mean_reflectance_list(image_folder):
+def get_mean_reflectance_df(image_folder):
     """
     Detects pixels in the reflectance panel and decides on the best image to use for calibration
     :param image_folder: The path to the folder with the calibration images
-    :return: A list of the average values of the reflectance panel for every valid calibration image
+    :return: A dataframe of the average values of the reflectance panel and the related autoexposure
+             for every valid calibration image
     """
-    reflectance_array = []
+    df_object = pd.DataFrame(columns=['mean_reflectance', 'autoexposure'])
     image_files = glob.glob(image_folder + '/*.tif')
     for image_file in image_files:
         # Read the original (12-bit) tiff with the next largest commonly used container (16-bit)
@@ -113,7 +116,9 @@ def get_mean_reflectance_list(image_folder):
         mean_reflectance_digital_number = reflectance_pixels.mean()
         print(f"Mean DN: {mean_reflectance_digital_number:10.5}")
 
-        reflectance_array.append(mean_reflectance_digital_number)
+        df_object = df_object.append({'mean_reflectance': mean_reflectance_digital_number, 
+                                      'autoexposure': imgparse.get_autoexposure(image_file)},
+                                      ignore_index=True)
 
-    return reflectance_array
+    return df_object
         
