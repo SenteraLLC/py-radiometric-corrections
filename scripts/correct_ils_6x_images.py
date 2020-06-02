@@ -238,8 +238,8 @@ def correct_ils_6x_images(input_path, output_path, no_ils_correct, delete_origin
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-
+    parser.add_argument("--no_autoexposure",
+                        help="don't correct for autoexposure, turn on if it has already been done in another script.")
     parser.add_argument('input_path',
                         help='Path to single-band, single-page .TIF files taken from a Sentera 6X sensor. Providing a '
                              'file path to the original multi-page images is not currently supported. However, '
