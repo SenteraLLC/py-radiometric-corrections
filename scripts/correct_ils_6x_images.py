@@ -5,30 +5,18 @@ import sys
 
 import tifffile as tf
 import pandas as pd
-import numpy as np
 
 import correct6x
-
-from PIL import Image
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-# def set_output_names(input_path, output_path):
-#
-#     if not output_path:
-#         output_path = input_path
-#
-#     image_df = pd.DataFrame()
-#
-#     image_df['image_path'] = glob(input_path + '/**/*.tif', recursive=True)
-#     image_df['output_path'] = image_df.image_path.str.replace(input_path, output_path, regex=False)
-#
-#     return image_df
+ROLLING_AVG_TIMESPAN = '6s'
 
 
+# I think I'll make these freestanding `apply` calls and save the function definition:
 def load_images(image_df):
-    image_df['image_obj'] = image_df.image_path.apply(tf.TiffFile)
+    image_df['image_exif'] = image_df.image_path.apply(imgparse.get_exif_data)
     return image_df
 
 
@@ -38,33 +26,27 @@ def find_ils_values(image_df):
 
 
 def find_image_timestamps(image_df):
-    image_df['image_timestamp'] = pd.to_datetime(image_df.image_obj.apply(correct6x.metadata.extract_timestamps),
-                                                 format='%Y:%m:%d %H:%M:%S')
+    image_df['image_timestamp'] = image_df.image_obj.apply(imgparse.get_timestamp)
     return image_df
+# --------------------------------------------------------------------------------------
 
 
-def compute_rolling_average(image_df):
+def compute_ils_correction(image_df):
 
     def _rolling_avg(df):
-        return df.astype(float).rolling('6s', closed='both').mean()
+        return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed='both').mean()
 
     image_df.set_index('image_timestamp', drop=True, inplace=True)
 
     image_df['image_root'] = image_df.image_path.apply(os.path.dirname)
-    image_df['averaged_ILS_val'] = image_df.groupby('image_root')['ILS_val'].transform(_rolling_avg)
-
-    return image_df
-
-
-def calculate_correction_factors(image_df):
-    image_df['EXIF'] = image_df.image_obj.apply(correct6x.metadata.load_exif)
+    image_df['averaged_ILS_val'] = image_df.groupby('image_root').ILS_val.transform(_rolling_avg)
     image_df['ILS_ratio'] = image_df.groupby('image_root').averaged_ILS_val.transform(lambda df: df / df.mean())
-    image_df['AE_correction'] = image_df.EXIF.apply(correct6x.corrections.calc_adj_dn)
+
     return image_df
 
 
-def get_image_metadata(image_df):
-    image_df['image_meta'] = image_df.image_obj.apply(correct6x.metadata.form_metadata_lsit)
+def compute_ae_correction(image_df):
+    image_df['AE_correction'] = image_df.image_exif.apply(imgparse.get_autoexposure)
     return image_df
 
 
@@ -74,23 +56,6 @@ def adjust_and_write_image_values(image_df, no_ils_correct):
                                                         row),
                    axis=1)
     image_df.image_obj.apply(lambda obj: obj.close())
-
-
-# def copy_exif_metadata(input_path, exiftool_path):
-#     logger.info("Writing EXIF data...")
-#     try:
-#         with exiftool.ExifTool(executable_=exiftool_path) as et:
-#             et.execute(b"-overwrite_original",
-#                        b"-r",
-#                        b"-TagsFromFile",
-#                        exiftool.fsencode(os.path.join('%d', '%-.4f.tif')),
-#                        exiftool.fsencode(input_path),
-#                        b"-gps:all",
-#                        b"-exif:all")
-#     except AttributeError:
-#         for file in glob(input_path + '/**/*_f32.tif', recursive=True):
-#             os.remove(file)
-#         raise FileNotFoundError("Couldn't find ExifTool executable.")
 
 
 def delete_all_originals(image_df):
@@ -127,16 +92,14 @@ def correct_ils_6x_images(input_path, output_path, no_ils_correct, delete_origin
     logger.info("ILS corrections: %s", _flag_format(not no_ils_correct))
     logger.info("Delete original: %s", _flag_format(delete_original))
 
-    image_df = set_output_names(input_path, output_path)
+    image_df = correct6x.io.create_image_df(input_path, output_path)
     image_df = load_images(image_df)
     image_df = find_ils_values(image_df)
     image_df = find_image_timestamps(image_df)
     image_df = compute_rolling_average(image_df)
     image_df = calculate_correction_factors(image_df)
-    image_df = get_image_metadata(image_df)
 
     adjust_and_write_image_values(image_df, no_ils_correct)
-    # copy_exif_metadata(input_path, exiftool_path)
 
     if delete_original:
         delete_all_originals(image_df)
