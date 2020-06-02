@@ -20,4 +20,4 @@ dependencies:
   # subpackage dependencies
   # private dependencies
   - pip:
-    - git+ssh://git@github.com/SenteraLLC/py-image-metadata-parser
+    - git+ssh://git@github.com/SenteraLLC/py-image-metadata-parser@v1.4.2
