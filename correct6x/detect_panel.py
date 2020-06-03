@@ -26,6 +26,7 @@ def convert_to_type(image, desired_type=np.uint8):
     image = np.iinfo(desired_type).max * image # Scale back to desired type
     return image.astype(desired_type)
 
+
 def generate_aruco_marker(id=13):
     """
     Generates and writes to disk an aruco label
@@ -121,4 +122,3 @@ def get_mean_reflectance_df(image_folder):
                                       ignore_index=True)
 
     return df_object
-        
