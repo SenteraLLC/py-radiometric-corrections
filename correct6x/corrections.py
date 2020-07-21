@@ -42,7 +42,7 @@ def compute_ils_correction(image_df):
     image_df['timestamp'] = image_df.apply(lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1)
     image_df.set_index('timestamp', drop=True, inplace=True)
 
-    image_df['ILS'] = image_df.apply(lambda row: imgparse.get_ils(row.image_path, row.EXIF), axis=1)
+    image_df['ILS'] = image_df.image_path.apply(imgparse.get_ils)
     image_df['averaged_ILS'] = image_df.groupby('image_root').ILS.transform(_rolling_avg)
 
     image_df['ILS_ratio'] = image_df.groupby('image_root').averaged_ILS.transform(lambda df: df / df.mean())
@@ -54,6 +54,10 @@ def compute_reflectance_correction(image_df, input_calibration_path):
     def _get_band_coeff(image_root):
         band_name = re.search(r"[A-Za-z]+", os.path.basename(image_root)).group(0).lower()
         return BAND_COEFFS[band_name]
+
+    if not os.path.isdir(input_calibration_path):
+        raise FileNotFoundError("To correct for reflectance, a path to calibration images must be specified. "
+                                "Specify this path with `--calibration_image_path PATH` or `-c PATH`.")
 
     mean_dn_df = detect_panel.get_mean_reflectance_df(input_calibration_path)
 
