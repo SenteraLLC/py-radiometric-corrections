@@ -40,17 +40,6 @@ def move_corrected_images(image_df):
 
 def write_image(image_arr_corrected, image_df_row):
 
-    exif_data = image_df_row.EXIF
-
-    x_res = exif_data['Image XResolution'].value
-    y_res = exif_data['Image YResolution'].value
-    res_unit = exif_data['Image ResolutionUnit'].value
-    planar_config = exif_data['Image PlanarConfiguration'].value
-    software = exif_data['Image Software'].value
-
     # noinspection PyTypeChecker
     tf.imwrite(image_df_row.image_path.replace('.tif', '_f32.tif'),
-               image_arr_corrected,
-               resolution=(x_res, y_res, res_unit),
-               planarconfig=planar_config,
-               software=software)
+               image_arr_corrected)

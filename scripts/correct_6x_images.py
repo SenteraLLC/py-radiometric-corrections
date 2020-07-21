@@ -60,10 +60,9 @@ def correct_6x_images(input_path, calibration_image_path, output_path, no_ils_co
 
     # Apply corrections:
     image_df.apply(lambda row: correct6x.write_image(correct6x.apply_corrections(row), row), axis=1)
-    image_df.image_obj.apply(lambda obj: obj.close())
 
     # Copy EXIF:
-    copy_command = correct6x.copy_exif(input_path, output_path, exiftool_path)
+    copy_command = correct6x.copy_exif(input_path, exiftool_path)
     if copy_command.returncode != 0:
         for file in glob(input_path + '/**/*_f32.tif', recursive=True):
             os.remove(file)

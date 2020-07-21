@@ -7,15 +7,17 @@ from glob import glob
 logger = logging.getLogger(__name__)
 
 
-def copy_exif(source_dir, target_dir, exiftool_path):
+def copy_exif(source_dir, exiftool_path):
     logger.info("Writing EXIF data...")
     copy_command = subprocess.run([exiftool_path,
                                    "-overwrite_original",
                                    "-r",
                                    "-TagsFromFile",
-                                   os.path.join(source_dir, "%f.%e"),
-                                   target_dir,
-                                   "-all:all",
+                                   os.path.join("%d", "%-.4f.tif"),
+                                   source_dir,
+                                   "-xmp",
+                                   "-exif",
+                                   "-all",
                                    "-ext tif"],
                                   capture_output=True)
 
