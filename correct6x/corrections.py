@@ -44,7 +44,7 @@ def compute_ils_correction(image_df):
 
     image_df['ILS_ratio'] = image_df.groupby('image_root').averaged_ILS.transform(lambda df: df / df.mean())
 
-    return image_df.drop(columns=['timestamp', 'ILS', 'averaged_ILS'])
+    return image_df.reset_index().drop(columns=['timestamp', 'ILS', 'averaged_ILS'])
 
 
 def compute_reflectance_correction(image_df, calibration_df):
