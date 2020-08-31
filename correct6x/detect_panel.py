@@ -1,3 +1,5 @@
+import logging
+
 import cv2 as cv
 import numpy as np
 import pandas as pd
@@ -14,6 +16,8 @@ ARUCO_TOP_TO_PANEL_CENTER_M = 0.06
 
 SAMPLE_RECT_HEIGHT = 0.04
 SAMPLE_RECT_WIDTH = 0.04
+
+logger = logging.getLogger(__name__)
 
 
 def convert_to_type(image, desired_type=np.uint8):
@@ -85,40 +89,25 @@ def extract_panel_bounds(image):
     return None
 
 
-def get_mean_reflectance_df(image_folder):
+def get_reflectance(image_path):
     """
-    Detects pixels in the reflectance panel and decides on the best image to use for calibration
-    :param image_folder: The path to the folder with the calibration images
-    :return: A dataframe of the average values of the reflectance panel and the related autoexposure
-             for every valid calibration image
+    Detects pixels in the reflectance panel and calculates the average reflectance value.
+    :param image_path: The path to a calibration image
+    :return: The average value of the reflectance panel a valid calibration image, NaN if image is invalid
     """
-    df_object = pd.DataFrame(columns=['mean_reflectance', 'autoexposure'])
-    image_files = glob.glob(image_folder + '/*.tif')
-    for image_file in image_files:
-        # Read the original (12-bit) tiff with the next largest commonly used container (16-bit)
-        image_16bit = np.asarray(Image.open(image_file)).astype(np.uint16)
-        # OpenCV aruco detection only accepts 8-bit data
-        image_8bit = convert_to_type(image_16bit, np.uint8)
-        rectangle_position = extract_panel_bounds(image_8bit)
-        if rectangle_position is None:
-            continue
+    # Read the original (12-bit) tiff with the next largest commonly used container (16-bit)
+    image_16bit = np.asarray(Image.open(image_path)).astype(np.uint16)
+    # OpenCV aruco detection only accepts 8-bit data
+    image_8bit = convert_to_type(image_16bit, np.uint8)
 
-        # Visualize the rectangle for verification purposes
-        # image_copy = image_8bit.copy()
-        # x_start = rectangle_position[0][0]
-        # y_start = rectangle_position[0][1]
-        # x_end = rectangle_position[1][0]
-        # y_end = rectangle_position[1][1]
-        # image_copy = cv.rectangle(image_copy,(x_start, y_start),(x_end, y_end),(0,255,0),3)
-        # cv.imwrite("res"+str(np.random.rand())+".jpg", image_copy)
-
+    rectangle_position = extract_panel_bounds(image_8bit)
+    if rectangle_position is None:
+        logger.info("No reflectance panel found. Mean DN: NaN")
+        return np.nan
+    else:
         reflectance_pixels = image_16bit[rectangle_position[0][0]:rectangle_position[1][0],
                                          rectangle_position[0][1]:rectangle_position[1][1]]
         mean_reflectance_digital_number = reflectance_pixels.mean()
-        print(f"Mean DN: {mean_reflectance_digital_number:10.5}")
 
-        df_object = df_object.append({'mean_reflectance': mean_reflectance_digital_number, 
-                                      'autoexposure': imgparse.get_autoexposure(image_file)},
-                                      ignore_index=True)
-
-    return df_object
+        logger.info(f"Mean DN: {mean_reflectance_digital_number:10.5}")
+        return mean_reflectance_digital_number

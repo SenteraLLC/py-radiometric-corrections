@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 
-def correct_6x_images(input_path, calibration_image_path, output_path, no_ils_correct, no_reflectance_correct,
+def correct_6x_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
                       delete_original, exiftool_path):
 
     def _flag_format(flag):
@@ -46,15 +46,18 @@ def correct_6x_images(input_path, calibration_image_path, output_path, no_ils_co
     # Get autoexposure correction:
     image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF), axis=1)
 
+    # Split out calibration images, if present:
+    calibration_df, image_df = correct6x.create_cal_df(image_df, calibration_id)
+
     # Get ILS correction:
     if not no_ils_correct:
-        image_df['ILS_ratio'] = correct6x.compute_ils_correction(image_df)
+        image_df = correct6x.compute_ils_correction(image_df)
     else:
         image_df['ILS_ratio'] = 1
 
     # Get reflectance correction:
     if not no_reflectance_correct:
-        image_df['slope_coefficient'] = correct6x.compute_reflectance_correction(image_df, calibration_image_path)
+        image_df = correct6x.compute_reflectance_correction(image_df, calibration_df)
     else:
         image_df['slope_coefficient'] = 1
 
@@ -84,9 +87,9 @@ if __name__ == '__main__':
                              'file path to the original multi-page images is not currently supported. However, '
                              'specifying a folder containing all single-page files in their respective sub-folders '
                              'will cause the script to perform ILS correction recursively throughout each sub-folder.')
-    parser.add_argument('--calibration_image_path', '-c',
-                        help='Path to folder of calibration images used to convert imagery to absolute reflectance. '
-                             'Only required if performing reflectance correction.')
+    parser.add_argument('--calibration_id', '-c', default='CAL',
+                        help='Identifier in the name of the image that denotes it is from the calibration set. '
+                             'If not specified, defaults to "CAL".')
     parser.add_argument('--output_path', '-o', default=None,
                         help='Path to output folder at which the corrected images will be stored. If not supplied, '
                              'corrected images will be placed into the input directory.')

@@ -23,6 +23,11 @@ def create_image_df(input_path, output_path):
     return image_df
 
 
+def create_cal_df(image_df, calibration_id):
+    is_cal_image = image_df.image_path.apply(lambda im: calibration_id in im)
+    return image_df.loc[is_cal_image], image_df.loc[~is_cal_image]
+
+
 def delete_all_originals(image_df):
     image_df.image_path.apply(os.remove)
 

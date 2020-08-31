@@ -1,4 +1,3 @@
-import bisect
 import imgparse
 import logging
 import os
@@ -25,14 +24,12 @@ BAND_COEFFS = {
     'green': GREEN_PANEL_COEFFICIENT,
     'red': RED_PANEL_COEFFICIENT,
     're': RED_EDGE_PANEL_COEFFICIENT,
-    'NIR': NEAR_INFRARED_COEFFICIENT
+    'nir': NEAR_INFRARED_COEFFICIENT
 }
 
 
-def take_closest_image(mean_dn_df):
-    band_correction_dn_index = bisect.bisect_left(mean_dn_df.loc[:, 'mean_reflectance'], 2048)
-    optimal_mean_dn_index = band_correction_dn_index - 1
-    return optimal_mean_dn_index
+def take_closest_image(df_grouped_by_band, target=2048):
+    return df_grouped_by_band.iloc[(df_grouped_by_band.mean_reflectance - target).abs().argmin()]
 
 
 def compute_ils_correction(image_df):
@@ -47,28 +44,29 @@ def compute_ils_correction(image_df):
 
     image_df['ILS_ratio'] = image_df.groupby('image_root').averaged_ILS.transform(lambda df: df / df.mean())
 
-    return image_df['ILS_ratio']
+    return image_df.drop(columns=['timestamp', 'ILS', 'averaged_ILS', 'ILS_ratio'])
 
 
-def compute_reflectance_correction(image_df, input_calibration_path):
+def compute_reflectance_correction(image_df, calibration_df):
     def _get_band_coeff(image_root):
         band_name = re.search(r"[A-Za-z]+", os.path.basename(image_root)).group(0).lower()
         return BAND_COEFFS[band_name]
 
-    if not os.path.isdir(input_calibration_path):
-        raise FileNotFoundError("To correct for reflectance, a path to calibration images must be specified. "
-                                "Specify this path with `--calibration_image_path PATH` or `-c PATH`.")
+    if calibration_df.empty:
+        raise FileNotFoundError("No calibration images were found. If not attempting to correct for "
+                                "absolute reflectance, set the '--no_reflectance_correct' flag. Otherwise, "
+                                "set the calibration image identifier with the '--calibration_id' option.")
 
-    mean_dn_df = detect_panel.get_mean_reflectance_df(input_calibration_path)
+    calibration_df['mean_reflectance'] = calibration_df.image_path.apply(detect_panel.get_reflectance)
+    band_df = calibration_df.groupby('image_root')[['mean_reflectance', 'autoexposure']] \
+        .apply(take_closest_image) \
+        .reset_index()
 
-    optimal_mean_dn_index = take_closest_image(mean_dn_df)
-    optimal_dn = mean_dn_df.at[optimal_mean_dn_index, 'mean_reflectance']
-    optimal_autoexposure = mean_dn_df.at[optimal_mean_dn_index, 'autoexposure']
+    band_df['slope_coefficient'] = (band_df.mean_reflectance / band_df.autoexposure) / \
+                                   band_df.image_root.apply(_get_band_coeff)
 
-    corrected_mean_dn = optimal_dn / optimal_autoexposure
-    image_df['slope_coefficient'] = corrected_mean_dn / _get_band_coeff(image_df.image_root)
-
-    return image_df['slope_coefficient']
+    return image_df.merge(band_df[['image_root', 'slope_coefficient']], on='image_root', how='outer') \
+        .fillna({'slope_coefficient': 1})
 
 
 def apply_corrections(image_df_row):
