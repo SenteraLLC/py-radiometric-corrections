@@ -11,7 +11,7 @@ from correct6x import detect_panel
 
 logger = logging.getLogger(__name__)
 
-ROLLING_AVG_TIMESPAN = '6s'
+ROLLING_AVG_TIMESPAN = '3s'
 
 BLUE_PANEL_COEFFICIENT = 0.1059
 GREEN_PANEL_COEFFICIENT = 0.1054
@@ -23,7 +23,7 @@ BAND_COEFFS = {
     'blue': BLUE_PANEL_COEFFICIENT,
     'green': GREEN_PANEL_COEFFICIENT,
     'red': RED_PANEL_COEFFICIENT,
-    're': RED_EDGE_PANEL_COEFFICIENT,
+    'rededge': RED_EDGE_PANEL_COEFFICIENT,
     'nir': NEAR_INFRARED_COEFFICIENT
 }
 
@@ -62,8 +62,8 @@ def compute_reflectance_correction(image_df, calibration_df):
         .apply(take_closest_image) \
         .reset_index()
 
-    band_df['slope_coefficient'] = (band_df.mean_reflectance / band_df.autoexposure) / \
-                                   band_df.image_root.apply(_get_band_coeff)
+    band_df['slope_coefficient'] = band_df.image_root.apply(_get_band_coeff) / \
+        (band_df.mean_reflectance / band_df.autoexposure)
 
     return image_df.merge(band_df[['image_root', 'slope_coefficient']], on='image_root', how='outer') \
         .fillna({'slope_coefficient': 1})
@@ -73,6 +73,6 @@ def apply_corrections(image_df_row):
     logger.info("Applying correction to image: %s", image_df_row.image_path)
 
     image_arr = np.asarray(Image.open(image_df_row.image_path)).astype(np.float32)
-    image_arr /= (image_df_row.autoexposure * image_df_row.ILS_ratio * image_df_row.slope_coefficient)
+    image_arr = (image_arr * image_df_row.slope_coefficient) / (image_df_row.autoexposure * image_df_row.ILS_ratio)
 
     return image_arr
