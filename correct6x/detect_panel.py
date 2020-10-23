@@ -30,7 +30,7 @@ class BoundingBox(NamedTuple):
         return slice(self.top_left[1], self.bottom_right[1]), slice(self.top_left[0], self.bottom_right[0])
 
 
-def convert_to_type(image, desired_type=np.uint8):
+def convert_12bit_to_type(image, desired_type=np.uint8):
     """
     Converts the 12-bit tiff from a 6X sensor to a numpy compatible form
     :param desired_type: The desired type
@@ -93,7 +93,7 @@ def get_reflectance(image_path):
     # Read the original (12-bit) tiff with the next largest commonly used container (16-bit)
     image_16bit = np.asarray(Image.open(image_path)).astype(np.uint16)
     # OpenCV aruco detection only accepts 8-bit data
-    image_8bit = convert_to_type(image_16bit, np.uint8)
+    image_8bit = convert_12bit_to_type(image_16bit, np.uint8)
 
     panel = extract_panel_bounds(image_8bit)
     if panel is None:
