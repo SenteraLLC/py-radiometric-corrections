@@ -18,6 +18,6 @@ dependencies:
   - pandas
   - tqdm
   # subpackage dependencies
-  # private dependencies
+  # Sentera dependencies
   - pip:
-    - git+ssh://git@github.com/SenteraLLC/py-image-metadata-parser@v1.5.0
+    - git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v1.9.2
