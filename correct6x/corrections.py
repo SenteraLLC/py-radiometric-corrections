@@ -6,7 +6,7 @@ import re
 import numpy as np
 
 from PIL import Image
-
+from functools import partial
 from correct6x import detect_panel
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def compute_ils_correction(image_df):
         return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed='both').mean()
 
     image_df['timestamp'] = image_df.apply(lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1)
-    image_df.set_index('timestamp', drop=True, inplace=True)
+    image_df = image_df.set_index('timestamp', drop=True).sort_index()
 
     image_df['ILS'] = image_df.image_path.apply(imgparse.get_ils)
     image_df['averaged_ILS'] = image_df.groupby('image_root').ILS.transform(_rolling_avg)
@@ -47,7 +47,7 @@ def compute_ils_correction(image_df):
     return image_df.reset_index().drop(columns=['timestamp', 'ILS', 'averaged_ILS'])
 
 
-def compute_reflectance_correction(image_df, calibration_df):
+def compute_reflectance_correction(image_df, calibration_df, ils_present):
     def _get_band_coeff(image_root):
         band_name = re.search(r"[A-Za-z]+", os.path.basename(image_root)).group(0).lower()
         return BAND_COEFFS[band_name]
@@ -56,8 +56,11 @@ def compute_reflectance_correction(image_df, calibration_df):
         raise FileNotFoundError("No calibration images were found. If not attempting to correct for "
                                 "absolute reflectance, set the '--no_reflectance_correct' flag. Otherwise, "
                                 "set the calibration image identifier with the '--calibration_id' option.")
-
-    calibration_df['mean_reflectance'] = calibration_df.image_path.apply(detect_panel.get_reflectance)
+    if ils_present:
+        avg_ils = image_df.image_path.apply(imgparse.get_ils).mean()
+    else:
+        avg_ils = None
+    calibration_df['mean_reflectance'] = calibration_df.image_path.apply(partial(detect_panel.get_reflectance, avg_ils=avg_ils))
     band_df = calibration_df.groupby('image_root')[['mean_reflectance', 'autoexposure']] \
         .apply(take_closest_image) \
         .reset_index()
