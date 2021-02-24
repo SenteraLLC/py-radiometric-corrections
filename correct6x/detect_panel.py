@@ -84,10 +84,9 @@ def extract_panel_bounds(image):
         return None
 
 
-def get_reflectance(image_path, avg_ils):
+def get_reflectance(image_path):
     """
     Detects pixels in the reflectance panel and calculates the average reflectance value.
-    :param avg_ils: average flight ils value.
     :param image_path: The path to a calibration image
     :return: The average value of the reflectance panel a valid calibration image, NaN if image is invalid
     """
@@ -103,10 +102,6 @@ def get_reflectance(image_path, avg_ils):
     else:
         reflectance_pixels = image_16bit[panel.bounds()]
         mean_reflectance_digital_number = reflectance_pixels.mean()
-        logger.info(f"Mean DN: {mean_reflectance_digital_number:10.5}")
 
-        if avg_ils is not None:
-            cal_ils = imgparse.get_ils(image_path)
-            return mean_reflectance_digital_number*(avg_ils/cal_ils)
-        else:
-            return mean_reflectance_digital_number
+        logger.info(f"Mean DN: {mean_reflectance_digital_number:10.5}")
+        return mean_reflectance_digital_number
