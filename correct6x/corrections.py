@@ -63,7 +63,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
                                 "set the calibration image identifier with the '--calibration_id' option.")
 
     calibration_df['mean_reflectance'] = calibration_df.image_path.apply(detect_panel.get_reflectance)
-    band_df = calibration_df.groupby('image_root')[['image_path', 'mean_reflectance', 'autoexposure']] \ 
+    band_df = calibration_df.groupby('image_root')[['image_path', 'mean_reflectance', 'autoexposure']] \
         .apply(take_closest_image) \
         .reset_index()
 
