@@ -37,7 +37,7 @@ def compute_ils_correction(image_df):
         return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed='both').mean()
 
     image_df['timestamp'] = image_df.apply(lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1)
-    image_df.set_index('timestamp', drop=True, inplace=True)
+    image_df = image_df.set_index('timestamp', drop=True).sort_index()
 
     image_df['ILS'] = image_df.image_path.apply(imgparse.get_ils)
     image_df['averaged_ILS'] = image_df.groupby('image_root').ILS.transform(_rolling_avg)
