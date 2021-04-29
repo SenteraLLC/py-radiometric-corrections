@@ -13,7 +13,7 @@ logger = logging.getLogger()
 
 
 def correct_6x_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
-                      delete_original, exiftool_path):
+                      delete_original, exiftool_path, register):
 
     def _flag_format(flag):
         if flag:
@@ -77,6 +77,13 @@ def correct_6x_images(input_path, calibration_id, output_path, no_ils_correct, n
     if (output_path and (output_path != input_path)) or delete_original:
         correct6x.move_corrected_images(image_df)
 
+    # Perform registration
+    if register:
+        from imgreg import multi_spect_dataset_handling
+        output_path = output_path or input_path
+        dataset_handler = multi_spect_dataset_handling.data_set_handler("cfg/reg_config.ini", input_dataset_path=output_path, output_dataset_path=os.path.join(output_path, "registered"), failure_dataset_path=os.path.join(output_path, "failure"))
+        dataset_handler.process_all_images(use_init_transform=True, update_from_previous=True)
+
 
 if __name__ == '__main__':
 
@@ -103,6 +110,8 @@ if __name__ == '__main__':
     parser.add_argument('--exiftool_path', '-e', default=None,
                         help="Path to ExifTool executable. ExifTool is required for the conversion; if not passed, "
                              "the script will use a bundled ExifTool executable.")
+    parser.add_argument('--register', '-R', action='store_true',
+                        help="If selected, perform image registration.")
 
     args = parser.parse_args()
     correct_6x_images(**vars(args))
