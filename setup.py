@@ -24,7 +24,8 @@ setuptools.setup(
         "pandas",
         "tqdm",
         "opencv-contrib-python",
-        "imgparse @ git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v1.9.2"
+        "imgparse @ git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v1.9.2",
+        "imgreg @ git+https://github.com/SenteraLLC/py-image-registration.git@v0.1.0"
     ],
     extras_require={
         "dev": ["pytest", "sphinx_rtd_theme", "pre-commit", "m2r", "sphinx"],

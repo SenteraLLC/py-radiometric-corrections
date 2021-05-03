@@ -111,7 +111,8 @@ if __name__ == '__main__':
                         help="Path to ExifTool executable. ExifTool is required for the conversion; if not passed, "
                              "the script will use a bundled ExifTool executable.")
     parser.add_argument('--register', '-R', action='store_true',
-                        help="If selected, perform image registration.")
+                        help="If selected, perform image registration. Aligned images are output to "
+                             "output_path/registered or output_path/failure depending on registration success.")
 
     args = parser.parse_args()
     correct_6x_images(**vars(args))
