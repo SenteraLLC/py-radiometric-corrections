@@ -77,9 +77,13 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         (band_df.mean_reflectance / band_df.autoexposure) * \
         band_df.ils_scaling_factor
 
-    return image_df.merge(band_df[['image_root', 'slope_coefficient']], on='image_root', how='outer') \
-        .fillna({'slope_coefficient': 1})
+    image_df = image_df.merge(band_df[['image_root', 'slope_coefficient']], on='image_root', how='outer')
+    if image_df['slope_coefficient'].isnull().values().any():
+        raise FileNotFoundError(
+            "Calibration imagery with a visible reference panel was not found for one or more bands."
+        )
 
+    return image_df
 
 def apply_corrections(image_df_row):
     logger.info("Applying correction to image: %s", image_df_row.image_path)
