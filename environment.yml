@@ -2,7 +2,7 @@ name: correct6x-venv
 channels:
   - conda-forge
 dependencies:
-  - python=3.7
+  - python=3.8
   # dev dependencies
   - pytest
   - pre_commit
@@ -20,5 +20,5 @@ dependencies:
   # subpackage dependencies
   # Sentera dependencies
   - pip:
-    - git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v1.9.2
+    - git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v1.9.3
     - git+https://github.com/SenteraLLC/py-image-registration.git@v0.1.0

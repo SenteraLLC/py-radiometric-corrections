@@ -42,7 +42,6 @@ def correct_6x_images(input_path, calibration_id, output_path, no_ils_correct, n
     # Get image metadata:
     image_df['EXIF'] = image_df.image_path.apply(imgparse.get_exif_data)
 
-    # Note: These calls will get cleaner with some `imgparse` improvements I have in mind:
     # Get autoexposure correction:
     image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF), axis=1)
 
@@ -57,32 +56,37 @@ def correct_6x_images(input_path, calibration_id, output_path, no_ils_correct, n
 
     # Get reflectance correction:
     if not no_reflectance_correct:
-        image_df = correct6x.compute_reflectance_correction(image_df, calibration_df)
+        image_df = correct6x.compute_reflectance_correction(image_df, calibration_df, not no_ils_correct)
     else:
         image_df['slope_coefficient'] = 1
 
     # Apply corrections:
     image_df.apply(lambda row: correct6x.write_image(correct6x.apply_corrections(row), row), axis=1)
 
-    # Copy EXIF:
-    copy_command = correct6x.copy_exif(input_path, exiftool_path)
-    if copy_command.returncode != 0:
+    try:
+        # Copy EXIF:
+        copy_command = correct6x.copy_exif(input_path, exiftool_path)
+        if copy_command.returncode != 0:
+            raise ValueError("Exiftool copy command did not run successfully.")
+
+        # Delete input imagery if requested:
+        if delete_original:
+            correct6x.delete_all_originals(image_df)
+
+        # Move output imagery to correct output directory:
+        if (output_path and (output_path != input_path)) or delete_original:
+            correct6x.move_corrected_images(image_df)
+
+        # Perform registration:
+        if register:
+            from imgreg import multi_spect_dataset_handling
+            output_path = output_path or input_path
+            dataset_handler = multi_spect_dataset_handling.data_set_handler("cfg/reg_config.ini", input_dataset_path=output_path, output_dataset_path=os.path.join(output_path, "registered"), failure_dataset_path=os.path.join(output_path, "failure"))
+            dataset_handler.process_all_images(use_init_transform=True, update_from_previous=True)
+    except:
         for file in glob(input_path + '/**/*_f32.tif', recursive=True):
             os.remove(file)
-        raise ValueError("Exiftool copy command did not run successfully.")
-
-    if delete_original:
-        correct6x.delete_all_originals(image_df)
-
-    if (output_path and (output_path != input_path)) or delete_original:
-        correct6x.move_corrected_images(image_df)
-
-    # Perform registration
-    if register:
-        from imgreg import multi_spect_dataset_handling
-        output_path = output_path or input_path
-        dataset_handler = multi_spect_dataset_handling.data_set_handler("cfg/reg_config.ini", input_dataset_path=output_path, output_dataset_path=os.path.join(output_path, "registered"), failure_dataset_path=os.path.join(output_path, "failure"))
-        dataset_handler.process_all_images(use_init_transform=True, update_from_previous=True)
+        raise
 
 
 if __name__ == '__main__':
