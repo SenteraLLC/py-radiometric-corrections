@@ -78,7 +78,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         band_df.ils_scaling_factor
 
     image_df = image_df.merge(band_df[['image_root', 'slope_coefficient']], on='image_root', how='outer')
-    if image_df['slope_coefficient'].isnull().values().any():
+    if image_df['slope_coefficient'].isnull().values.any():
         raise FileNotFoundError(
             "Calibration imagery with a visible reference panel was not found for one or more bands."
         )
