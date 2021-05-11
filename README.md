@@ -15,7 +15,7 @@ Library to perform various corrections on native 6X imagery.
 
         >> conda env create -f environment.yml
         >> conda activate correct6x-venv
-        >> pip install -e .
+        >> pip install .
         
 4) This creates an *correct6x-venv* environment that all scripts should be run in and installs the **analyticstest**
    library for the scripts to reference. 
