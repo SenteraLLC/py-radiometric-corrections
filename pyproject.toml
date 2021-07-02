@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "correct6x"
-version = "1.2.3"
+version = "1.3.0"
 description = "Library to perform various corrections on native 6X imagery"
 authors = ["Your Name <you@example.com>"]
 
