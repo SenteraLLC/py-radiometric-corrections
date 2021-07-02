@@ -7,6 +7,7 @@ from correct6x.corrections import (
 )
 
 from correct6x.io import (
+    apply_sensor_settings,
     create_image_df,
     create_cal_df,
     write_image,
@@ -21,6 +22,7 @@ __all__ = [
     "compute_ils_correction",
     "compute_reflectance_correction",
     "apply_corrections",
+    "apply_sensor_settings",
     "create_image_df",
     "create_cal_df",
     "write_image",
