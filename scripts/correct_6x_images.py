@@ -12,11 +12,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 
-def get_sensor_type(image_df):
-    if image_df['EXIF']:
-        pass
-
-
 def correct_6x_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
                       delete_original, exiftool_path, register):
 
