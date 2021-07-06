@@ -96,9 +96,8 @@ def delete_all_originals(image_df):
 
 
 def add_band_to_path(path, band):
-    split_path = path.split('/')
-    split_path.insert(len(split_path)-1, band)
-    return os.path.join(*split_path)
+    dir, base = os.path.split(path)
+    return os.path.join(dir, band, base)
 
 
 def move_images(image_df_row):
