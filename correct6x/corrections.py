@@ -120,12 +120,8 @@ def apply_corrections(image_df_row):
         saturation_indices = image_arr >= 255
         image_arr[saturation_indices] = np.nan
         # perform band math
-        red_ch, green_ch, blue_ch = cv.split(image_arr)
-        image_arr = (
-            (image_df_row.band_math[0] * red_ch if image_df_row.band_math[0] != 0 else 0) +
-            (image_df_row.band_math[1] * green_ch if image_df_row.band_math[1] != 0 else 0) +
-            (image_df_row.band_math[2] * blue_ch if image_df_row.band_math[2] != 0 else 0)
-        )
+        image_arr = detect_panel.isolate_band(image_arr, image_df_row.band_math)
+
     image_arr = (image_arr * image_df_row.slope_coefficient) / (image_df_row.autoexposure * image_df_row.ILS_ratio)
 
     return image_arr

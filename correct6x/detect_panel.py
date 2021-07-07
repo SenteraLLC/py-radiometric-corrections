@@ -41,6 +41,21 @@ def convert_12bit_to_type(image, desired_type=np.uint8):
     return image.astype(desired_type)
 
 
+def isolate_band(image, band_math_arr):
+    """
+    Isolates a single band by performing bandmath on a multi-channel image
+    :param image: The multi-channel image
+    :param band_math_arr: Describes the band math required to isolate the desired band
+    :return: The isolated band
+    """
+    red_ch, green_ch, blue_ch = cv.split(image)
+    return (
+        (band_math_arr[0] * red_ch if band_math_arr[0] != 0 else 0) +
+        (band_math_arr[1] * green_ch if band_math_arr[1] != 0 else 0) +
+        (band_math_arr[2] * blue_ch if band_math_arr[2] != 0 else 0)
+    )
+
+
 def extract_panel_bounds(image):
     """
     Detects an Aruco marker attached to a reflectance calibration panel and calculates the location of the panel itself.
@@ -103,6 +118,7 @@ def get_reflectance(row):
         saturation_indices = image >= 255
         image[saturation_indices] = np.nan
         # perform band math
+        image = isolate_band(image, row.band_math)
         red_ch, green_ch, blue_ch = cv.split(image)
         image = (
             (row.band_math[0] * red_ch if row.band_math[0] != 0 else 0) +
