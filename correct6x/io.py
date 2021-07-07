@@ -106,8 +106,7 @@ def move_images(image_df_row):
 
 def move_corrected_images(image_df):
     for folder in image_df.output_path.apply(os.path.dirname).unique():
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
+        os.makedirs(folder, exist_ok=True)
     image_df.apply(lambda row: move_images(row), axis=1)
 
 
@@ -116,8 +115,7 @@ def write_image(image_arr_corrected, image_df_row):
         temp_path = image_df_row.image_path.replace('.tif', '_f32.tif')
     else:
         temp_path = add_band_to_path(image_df_row.image_path, image_df_row.band).replace('.jpg', '.tif')
-        if not os.path.isdir(os.path.dirname(temp_path)):
-            os.makedirs(os.path.dirname(temp_path))
+        os.makedirs(os.path.dirname(temp_path), exist_ok=True)
     # noinspection PyTypeChecker
     tf.imwrite(temp_path, image_arr_corrected)
 
