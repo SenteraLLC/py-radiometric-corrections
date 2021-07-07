@@ -119,12 +119,6 @@ def get_reflectance(row):
         image[saturation_indices] = np.nan
         # perform band math
         image = isolate_band(image, row.band_math)
-        red_ch, green_ch, blue_ch = cv.split(image)
-        image = (
-            (row.band_math[0] * red_ch if row.band_math[0] != 0 else 0) +
-            (row.band_math[1] * green_ch if row.band_math[1] != 0 else 0) +
-            (row.band_math[2] * blue_ch if row.band_math[2] != 0 else 0)
-        )
 
     if panel is None:
         logger.info("No reflectance panel found. Mean DN: NaN")
