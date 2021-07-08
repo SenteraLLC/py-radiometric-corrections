@@ -41,7 +41,6 @@ def correct_6x_images(input_path, calibration_id, output_path, no_ils_correct, n
 
     # Get image metadata:
     image_df['EXIF'] = image_df.image_path.apply(imgparse.get_exif_data)
-    image_df['XMP'] = image_df.image_path.apply(imgparse.get_xmp_data)
 
     # Determine sensor type apply sensor specific settings
     image_df = correct6x.apply_sensor_settings(image_df)

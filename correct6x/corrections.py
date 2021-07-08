@@ -36,27 +36,15 @@ def compute_ils_correction(image_df):
     def _rolling_avg(df):
         return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed='both').mean()
 
-    try:
-        def _get_ILS(row):
-            # if metadata has independent ils band data, use that
-            if row.independent_ils:
-                return imgparse.get_ils(row.image_path)
-            # otherwise, refer to ils clear band data
-            else:
-                ils_str = 'ILS:Clear="'
-                loc = row.XMP.find(ils_str)
-                if loc == -1:
-                    raise imgparse.xmp.XMPTagNotFoundError("Couldn't parse ILS:Clear string from the image file.")
-                start = loc + len(ils_str)
-                end = row.XMP.find('"', start)
+    #try:
+    def _get_ILS(row):
+        return imgparse.get_ils(row.image_path, use_clear_channel=not row.independent_ils)
 
-                return float(row.XMP[start:end])
-
-        image_df['ILS'] = image_df.apply(_get_ILS, axis=1)
-    except:
-        logger.warning("Skipping ILS normalization")
-        image_df['ILS_ratio'] = 1
-        return image_df, True
+    image_df['ILS'] = image_df.apply(_get_ILS, axis=1)
+    #except:
+    #    logger.warning("Skipping ILS normalization")
+    #    image_df['ILS_ratio'] = 1
+    #    return image_df, True
 
     image_df['timestamp'] = image_df.apply(lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1)
     image_df = image_df.set_index('timestamp', drop=True).sort_index()
