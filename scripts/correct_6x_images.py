@@ -54,7 +54,7 @@ def correct_6x_images(input_path, calibration_id, output_path, no_ils_correct, n
 
     # Get ILS correction:
     if not no_ils_correct:
-        image_df, no_ils_correct = correct6x.compute_ils_correction(image_df)
+        image_df = correct6x.compute_ils_correction(image_df)
     else:
         image_df['ILS_ratio'] = 1
 

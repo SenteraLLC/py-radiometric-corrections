@@ -46,7 +46,7 @@ python-versions = "*"
 
 [[package]]
 name = "imgparse"
-version = "1.10.3"
+version = "1.10.4"
 description = "Python image-metadata-parser utilities"
 category = "main"
 optional = false
@@ -63,8 +63,8 @@ timezonefinder = "*"
 [package.source]
 type = "git"
 url = "https://github.com/SenteraLLC/py-image-metadata-parser.git"
-reference = "v1.10.3"
-resolved_reference = "74b146c4d658a007a779b7a0cb00290a010fcf56"
+reference = "v1.10.4"
+resolved_reference = "069779f2a977d23e3afe5da437a682a126f6fb97"
 
 [[package]]
 name = "imgreg"
@@ -255,7 +255,7 @@ telegram = ["requests"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "b5bd507d0fa0031b0d27cdd7ab008eb2b451224120bcbda184f93c9aaf1d9853"
+content-hash = "7c4291289987a4457c19a1e9b6c0fe4ea391d2d67b1b7ffdc62cbc8424ac8a43"
 
 [metadata.files]
 click = [

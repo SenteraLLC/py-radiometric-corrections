@@ -36,15 +36,13 @@ def compute_ils_correction(image_df):
     def _rolling_avg(df):
         return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed='both').mean()
 
-    #try:
     def _get_ILS(row):
         return imgparse.get_ils(row.image_path, use_clear_channel=not row.independent_ils)
 
-    image_df['ILS'] = image_df.apply(_get_ILS, axis=1)
-    #except:
-    #    logger.warning("Skipping ILS normalization")
-    #    image_df['ILS_ratio'] = 1
-    #    return image_df, True
+    try:
+        image_df['ILS'] = image_df.apply(_get_ILS, axis=1)
+    except:
+        raise Exception("ILS data not found. Use --no-ils-correct flag to run corrections without ILS normalization.")
 
     image_df['timestamp'] = image_df.apply(lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1)
     image_df = image_df.set_index('timestamp', drop=True).sort_index()
@@ -54,7 +52,7 @@ def compute_ils_correction(image_df):
     image_df['ILS_ratio'] = image_df.groupby('band').averaged_ILS.transform(lambda df: df / df.mean())
 
     # NOTE: We keep the 'ILS' column here to use it to scale the reflectance correction later.
-    return image_df.reset_index().drop(columns=['timestamp', 'averaged_ILS']), False
+    return image_df.reset_index().drop(columns=['timestamp', 'averaged_ILS'])
 
 
 def compute_reflectance_correction(image_df, calibration_df, ils_present):
