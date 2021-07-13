@@ -57,7 +57,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
                                 "absolute reflectance, set the '--no_reflectance_correct' flag. Otherwise, "
                                 "set the calibration image identifier with the '--calibration_id' option.")
 
-    # only calculate mean reflectance if it was not calculated previously to find calibratino images
+    # only calculate mean reflectance if it was not calculated previously to find calibration images
     calibration_df['mean_reflectance'] = calibration_df.apply(
         lambda row: detect_panel.get_reflectance(row) if row.cal_in_path else row.mean_reflectance, axis=1
     )
