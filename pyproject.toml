@@ -11,7 +11,7 @@ numpy = "^1.20.1"
 tifffile = "^2021.3.16"
 pandas = "^1.2.3"
 tqdm = "^4.59.0"
-imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v1.10.4"}
+imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v1.10.5"}
 imgreg = {git = "https://github.com/SenteraLLC/py-image-registration.git", tag = "v1.1.1"}
 opencv-contrib-python = "^4.5.1"
 

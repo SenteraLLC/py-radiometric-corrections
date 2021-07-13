@@ -7,26 +7,11 @@ import numpy as np
 
 from PIL import Image
 
-from correct6x import detect_panel
+from correct6x import detect_panel, io
 
 logger = logging.getLogger(__name__)
 
 ROLLING_AVG_TIMESPAN = '3s'
-
-BLUE_PANEL_COEFFICIENT = 0.1059
-GREEN_PANEL_COEFFICIENT = 0.1054
-RED_PANEL_COEFFICIENT = 0.1052
-RED_EDGE_PANEL_COEFFICIENT = 0.1052
-NEAR_INFRARED_COEFFICIENT = 0.1055
-
-BAND_COEFFS = {
-    'blue': BLUE_PANEL_COEFFICIENT,
-    'green': GREEN_PANEL_COEFFICIENT,
-    'red': RED_PANEL_COEFFICIENT,
-    'rededge': RED_EDGE_PANEL_COEFFICIENT,
-    'nir': NEAR_INFRARED_COEFFICIENT,
-}
-
 
 def take_closest_image(df_grouped_by_band, target=2048):
     return df_grouped_by_band.iloc[(df_grouped_by_band.mean_reflectance - target).abs().argmin()]
@@ -56,8 +41,12 @@ def compute_ils_correction(image_df):
 
 
 def compute_reflectance_correction(image_df, calibration_df, ils_present):
-    def _get_band_coeff(band_name):
-        return BAND_COEFFS[band_name]
+    def _get_band_coeff(row, coeffs):
+        cent_arr, wfhm_arr = imgparse.get_wavelength_data(row.image_path)
+        cent = int(cent_arr[int(row.XMP_index)])
+        wfhm = int(wfhm_arr[int(row.XMP_index)])
+
+        return np.average(coeffs[cent-wfhm:cent+wfhm+1])
 
     def _get_ils_scaling(band_row):
         calibration_img_ils = imgparse.get_ils(band_row.image_path)
@@ -72,7 +61,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
     calibration_df['mean_reflectance'] = calibration_df.apply(
         lambda row: detect_panel.get_reflectance(row) if row.cal_in_path else row.mean_reflectance, axis=1
     )
-    band_df = calibration_df.groupby('band')[['image_path', 'mean_reflectance', 'autoexposure']] \
+    band_df = calibration_df.groupby('band')[['image_path', 'mean_reflectance', 'autoexposure', 'XMP_index']] \
         .apply(take_closest_image) \
         .reset_index()
 
@@ -82,8 +71,10 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
     else:
         band_df['ils_scaling_factor'] = 1
 
+    coeffs = io.get_zenith_coeffs()
+
     band_df['slope_coefficient'] = (
-        band_df.band.apply(_get_band_coeff) /
+        band_df.apply(lambda row: _get_band_coeff(row, coeffs), axis=1) /
         (band_df.mean_reflectance / band_df.autoexposure) *
         band_df.ils_scaling_factor
     )

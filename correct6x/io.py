@@ -1,11 +1,10 @@
-import json
+import csv
 import logging
 import os
 import re
 
 from glob import glob
 
-import cv2 as cv
 import numpy as np
 import pandas as pd
 import tifffile as tf
@@ -37,11 +36,13 @@ def apply_sensor_settings(image_df):
                     for band in s['bands']:
                         row['band'] = band[0]
                         row['band_math'] = band[1]
+                        row['XMP_index'] = band[2]
                         row['output_path'] = add_band_to_path(row.output_path, band[0]).replace('.jpg', '.tif')
                         return_df = return_df.append(row, ignore_index=True)
                 # otherwise, assume band is indicated in root folder name
                 else:
                     row['band'] = re.search(r"[A-Za-z]+", os.path.basename(row.image_root)).group(0).lower()
+                    row['XMP_index'] = 0
                     return_df = return_df.append(row, ignore_index=True)
 
                 break
@@ -121,3 +122,12 @@ def write_image(image_arr_corrected, image_df_row):
 
     image_df_row['temp_path'] = temp_path
     return image_df_row
+
+
+def get_zenith_coeffs():
+    arr = np.empty(2501, dtype=float)
+    with open("zenith_co.csv", newline='') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            arr[int(row[0])] = float(row[1])
+    return arr
