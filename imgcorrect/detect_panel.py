@@ -41,6 +41,21 @@ def convert_12bit_to_type(image, desired_type=np.uint8):
     return image.astype(desired_type)
 
 
+def isolate_band(image, band_math_arr):
+    """
+    Isolates a single band by performing bandmath on a multi-channel image
+    :param image: The multi-channel image
+    :param band_math_arr: Describes the band math required to isolate the desired band
+    :return: The isolated band
+    """
+    red_ch, green_ch, blue_ch = cv.split(image)
+    return (
+        (band_math_arr[0] * red_ch if band_math_arr[0] != 0 else 0) +
+        (band_math_arr[1] * green_ch if band_math_arr[1] != 0 else 0) +
+        (band_math_arr[2] * blue_ch if band_math_arr[2] != 0 else 0)
+    )
+
+
 def extract_panel_bounds(image):
     """
     Detects an Aruco marker attached to a reflectance calibration panel and calculates the location of the panel itself.
@@ -84,23 +99,32 @@ def extract_panel_bounds(image):
         return None
 
 
-def get_reflectance(image_path):
+def get_reflectance(row):
     """
     Detects pixels in the reflectance panel and calculates the average reflectance value.
     :param image_path: The path to a calibration image
     :return: The average value of the reflectance panel a valid calibration image, NaN if image is invalid
     """
-    # Read the original (12-bit) tiff with the next largest commonly used container (16-bit)
-    image_16bit = np.asarray(Image.open(image_path)).astype(np.uint16)
-    # OpenCV aruco detection only accepts 8-bit data
-    image_8bit = convert_12bit_to_type(image_16bit, np.uint8)
+    if row['sensor'] == '6x':
+        # Read the original (12-bit) tiff with the next largest commonly used container (16-bit)
+        image = np.asarray(Image.open(row['image_path'])).astype(np.uint16)
+        # OpenCV aruco detection only accepts 8-bit data
+        panel = extract_panel_bounds(convert_12bit_to_type(image, np.uint8))
+    else:
+        image = np.asarray(Image.open(row['image_path'])).astype(np.uint8)
+        panel = extract_panel_bounds(image)
+        # Change array type to float so saturated values can be ignored during reflectance calculation
+        image = image.astype(np.float32)
+        saturation_indices = image >= 255
+        image[saturation_indices] = np.nan
+        # perform band math
+        image = isolate_band(image, row.band_math)
 
-    panel = extract_panel_bounds(image_8bit)
     if panel is None:
         logger.info("No reflectance panel found. Mean DN: NaN")
         return np.nan
     else:
-        reflectance_pixels = image_16bit[panel.bounds()]
+        reflectance_pixels = image[panel.bounds()]
         mean_reflectance_digital_number = reflectance_pixels.mean()
 
         logger.info(f"Mean DN: {mean_reflectance_digital_number:10.5}")

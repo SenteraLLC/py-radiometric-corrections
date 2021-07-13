@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "correct6x"
-version = "1.2.3"
-description = "Library to perform various corrections on native 6X imagery"
+name = "imgcorrect"
+version = "1.3.0"
+description = "Library to perform various corrections on imagery from supported sensors"
 authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
@@ -11,7 +11,7 @@ numpy = "^1.20.1"
 tifffile = "^2021.3.16"
 pandas = "^1.2.3"
 tqdm = "^4.59.0"
-imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v1.9.3"}
+imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v1.10.5"}
 imgreg = {git = "https://github.com/SenteraLLC/py-image-registration.git", tag = "v1.1.1"}
 opencv-contrib-python = "^4.5.1"
 
