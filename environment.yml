@@ -1,4 +1,4 @@
-name: correct6x-venv
+name: imgcorrect-venv
 channels:
   - conda-forge
 dependencies:

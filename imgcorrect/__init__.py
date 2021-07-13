@@ -1,12 +1,12 @@
-from correct6x._version import __version__
+from imgcorrect._version import __version__
 
-from correct6x.corrections import (
+from imgcorrect.corrections import (
     compute_ils_correction,
     compute_reflectance_correction,
     apply_corrections
 )
 
-from correct6x.io import (
+from imgcorrect.io import (
     apply_sensor_settings,
     create_image_df,
     create_cal_df,
@@ -15,7 +15,7 @@ from correct6x.io import (
     move_corrected_images
 )
 
-from correct6x.metadata import copy_exif
+from imgcorrect.metadata import copy_exif
 
 __all__ = [
     "__version__",

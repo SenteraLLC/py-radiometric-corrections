@@ -7,7 +7,7 @@ import numpy as np
 
 from PIL import Image
 
-from correct6x import detect_panel, io
+from imgcorrect import detect_panel, io
 
 logger = logging.getLogger(__name__)
 

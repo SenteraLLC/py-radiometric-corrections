@@ -9,8 +9,8 @@ import numpy as np
 import pandas as pd
 import tifffile as tf
 
-from correct6x import detect_panel
-from correct6x.sensor_defs import sensor_defs
+from imgcorrect import detect_panel
+from imgcorrect.sensor_defs import sensor_defs
 
 
 logger = logging.getLogger(__name__)
