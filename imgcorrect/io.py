@@ -129,5 +129,5 @@ def get_zenith_coeffs():
     with open("zenith_co.csv", newline='') as file:
         reader = csv.reader(file)
         for row in reader:
-            arr[int(row[0])] = float(row[1])
+            arr[int(row[0])] = float(row[1]) / 100 # convert from percentages
     return arr
