@@ -37,12 +37,14 @@ def apply_sensor_settings(image_df):
                         row['band'] = band[0]
                         row['band_math'] = band[1]
                         row['XMP_index'] = band[2]
+                        row['reduce_xmp'] = True
                         row['output_path'] = add_band_to_path(row.output_path, band[0]).replace('.jpg', '.tif')
                         return_df = return_df.append(row, ignore_index=True)
                 # otherwise, assume band is indicated in root folder name
                 else:
                     row['band'] = re.search(r"[A-Za-z]+", os.path.basename(row.image_root)).group(0).lower()
                     row['XMP_index'] = 0
+                    row['reduce_xmp'] = False
                     return_df = return_df.append(row, ignore_index=True)
 
                 break
