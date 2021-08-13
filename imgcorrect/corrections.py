@@ -42,9 +42,9 @@ def compute_ils_correction(image_df):
 
 def compute_reflectance_correction(image_df, calibration_df, ils_present):
     def _get_band_coeff(row, coeffs):
-        cent_arr, wfhm_arr = imgparse.get_wavelength_data(row.image_path)
+        cent_arr, fwhm_arr = imgparse.get_wavelength_data(row.image_path)
         cent = int(cent_arr[int(row.XMP_index)])
-        wfhm = int(wfhm_arr[int(row.XMP_index)])
+        wfhm = int(fwhm_arr[int(row.XMP_index)])
 
         return np.average(coeffs[cent-wfhm:cent+wfhm+1])
 
