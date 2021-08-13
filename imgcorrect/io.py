@@ -31,6 +31,11 @@ def apply_sensor_settings(image_df):
                 for key, val in s['settings'].items():
                     row[key] = val
 
+                # ignore images with extensions in settings['ignore_image_types']
+                if 'ignore_image_types' in row and os.path.splitext(row['image_path'])[1] in row['ignore_image_types']:
+                    logger.info(f"Ignoring {row['image_path']}")
+                    break
+
                 # if each image contains data for multiple bands, configure accordingly
                 if 'bands' in s:
                     for band in s['bands']:
