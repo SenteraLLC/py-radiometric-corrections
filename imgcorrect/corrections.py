@@ -94,8 +94,8 @@ def apply_corrections(image_df_row):
     # for images that represent data for multiple bands
     if image_df_row.sensor != "6x":
         # ignore saturated pixels
-        saturation_indices = image_arr >= 255
-        image_arr[saturation_indices] = np.nan
+        #saturation_indices = image_arr >= 255
+        #image_arr[saturation_indices] = np.nan
         # perform band math
         image_arr = detect_panel.isolate_band(image_arr, image_df_row.band_math)
 
