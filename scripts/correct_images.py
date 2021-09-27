@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+import tqdm
 
 from glob import glob
 
@@ -10,6 +11,10 @@ import imgcorrect
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
+
+# Create new `pandas` methods which use `tqdm` progress
+# (can use tqdm_gui, optional kwargs, etc.)
+tqdm.pandas()
 
 
 def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
@@ -70,7 +75,8 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
     try:
         # Copy EXIF:
         logger.info("Writing EXIF data...")
-        image_df.apply(lambda row: imgcorrect.copy_exif(row, exiftool_path), axis=1)
+        # progress_apply is tqdm version of apply
+        image_df.progress_apply(lambda row: imgcorrect.copy_exif(row, exiftool_path), axis=1)
 
         # Delete input imagery if requested:
         if delete_original:
