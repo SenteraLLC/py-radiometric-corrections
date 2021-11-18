@@ -87,6 +87,9 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
 
     return image_df
 
+def compute_correction_coefficient(image_df_row):
+    return image_df_row.slope_coefficient / (image_df_row.autoexposure * image_df_row.ILS_ratio)
+
 def apply_corrections(image_df_row):
     logger.info("Applying correction to image: %s", image_df_row.image_path)
 
@@ -99,6 +102,6 @@ def apply_corrections(image_df_row):
         # perform band math
         image_arr = detect_panel.isolate_band(image_arr, image_df_row.band_math)
 
-    image_arr = (image_arr * image_df_row.slope_coefficient) / (image_df_row.autoexposure * image_df_row.ILS_ratio)
+    image_arr = image_arr * image_df_row.correction_coefficient
 
     return image_arr

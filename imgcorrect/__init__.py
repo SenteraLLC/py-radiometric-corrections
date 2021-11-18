@@ -3,6 +3,7 @@ from imgcorrect._version import __version__
 from imgcorrect.corrections import (
     compute_ils_correction,
     compute_reflectance_correction,
+    compute_correction_coefficient,
     apply_corrections
 )
 
@@ -21,6 +22,7 @@ __all__ = [
     "__version__",
     "compute_ils_correction",
     "compute_reflectance_correction",
+    "compute_correction_coefficient",
     "apply_corrections",
     "apply_sensor_settings",
     "create_image_df",

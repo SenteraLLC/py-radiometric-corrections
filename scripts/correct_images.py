@@ -1,5 +1,6 @@
 import argparse
 import logging
+import numpy as np
 import os
 import sys
 from tqdm import tqdm
@@ -53,6 +54,12 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
     # Get autoexposure correction:
     image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF), axis=1)
 
+    image_df = image_df.reset_index()
+    for ae in image_df['autoexposure']:
+        print(ae)
+    print(image_df['autoexposure'].max())
+
+
     # Split out calibration images, if present:
     if not no_reflectance_correct:
         calibration_df, image_df = imgcorrect.create_cal_df(image_df, calibration_id)
@@ -68,6 +75,24 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
         image_df = imgcorrect.compute_reflectance_correction(image_df, calibration_df, not no_ils_correct)
     else:
         image_df['slope_coefficient'] = 1
+
+    image_df['correction_coefficient'] = image_df.apply(lambda row: imgcorrect.compute_correction_coefficient(row), axis=1)
+
+    image_df = image_df.reset_index()
+    print(image_df['correction_coefficient'].min())
+    print(image_df['correction_coefficient'].max())
+
+    print(image_df.groupby('band')[['correction_coefficient']].max())
+    print(image_df.groupby('band'))
+
+    for cc in image_df['correction_coefficient']:
+        print(f"{cc:.6f}")
+    
+    # Normalize pixel values in corrected images to original range.
+    image_df.correction_coefficient = image_df.correction_coefficient / image_df.groupby('band').correction_coefficient.transform(np.max)
+
+    print(image_df['correction_coefficient'].min())
+    print(image_df['correction_coefficient'].max())
 
     # Apply corrections:
     image_df = image_df.apply(lambda row: imgcorrect.write_image(imgcorrect.apply_corrections(row), row), axis=1)
