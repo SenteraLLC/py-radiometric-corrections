@@ -184,7 +184,7 @@ telegram = ["requests"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f2a8e3df3912b798d743a6693af0fadaed7092a633e8148388267a947105b39a"
+content-hash = "46d6e8e18681890fb790214fe4acbc6453d3c001970098e2da0e414478228572"
 
 [metadata.files]
 click = [
