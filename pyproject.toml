@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "imgcorrect"
-version = "1.4.0"
+version = "1.4.1"
 description = "Library to perform various corrections on imagery from supported sensors"
 authors = ["Samuel Williams <sam.williams@sentera.com>"]
 
@@ -12,7 +12,6 @@ tifffile = "^2021.3.16"
 pandas = "^1.2.3"
 tqdm = "^4.59.0"
 imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v1.10.6"}
-imgreg = {git = "https://github.com/SenteraLLC/py-image-registration.git", tag = "v1.1.1"}
 opencv-contrib-python = "^4.5.1"
 
 [tool.poetry.dev-dependencies]
