@@ -11,7 +11,7 @@ numpy = "^1.20.1"
 tifffile = "^2021.3.16"
 pandas = "^1.2.3"
 tqdm = "^4.59.0"
-imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v1.11.0"}
+imgparse = {git = "ssh://git@github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v1.11.0"}
 opencv-contrib-python = "^4.5.1"
 
 [tool.poetry.dev-dependencies]

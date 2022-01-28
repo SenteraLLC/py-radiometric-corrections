@@ -53,7 +53,7 @@ metadata_csv = ["pandas"]
 
 [package.source]
 type = "git"
-url = "https://github.com/SenteraLLC/py-image-metadata-parser.git"
+url = "ssh://git@github.com/SenteraLLC/py-image-metadata-parser.git"
 reference = "v1.11.0"
 resolved_reference = "11903b8ab559be7087ad03e2013d999a15a256b0"
 
@@ -184,7 +184,7 @@ telegram = ["requests"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f86ef52070f42cc9986ca29119c9f15a3afee8ea7642ff726e982499f443efe7"
+content-hash = "f2a8e3df3912b798d743a6693af0fadaed7092a633e8148388267a947105b39a"
 
 [metadata.files]
 click = [
