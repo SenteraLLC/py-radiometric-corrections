@@ -35,7 +35,7 @@ python-versions = "*"
 
 [[package]]
 name = "imgparse"
-version = "1.10.6"
+version = "1.11.0"
 description = "Python image-metadata-parser utilities"
 category = "main"
 optional = false
@@ -46,14 +46,16 @@ develop = false
 click = "*"
 decorator = "*"
 exifread = "*"
-pandas = "*"
 timezonefinder = "*"
+
+[package.extras]
+metadata_csv = ["pandas"]
 
 [package.source]
 type = "git"
 url = "https://github.com/SenteraLLC/py-image-metadata-parser.git"
-reference = "v1.10.6"
-resolved_reference = "ceb237468afd17a9d5ddfa14e606ba0e7a12f0f4"
+reference = "v1.11.0"
+resolved_reference = "11903b8ab559be7087ad03e2013d999a15a256b0"
 
 [[package]]
 name = "numpy"
@@ -182,7 +184,7 @@ telegram = ["requests"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f00a6fb44e10a0ef477b330a90b58762e619ee19462fa3ac83225118062bcc09"
+content-hash = "f86ef52070f42cc9986ca29119c9f15a3afee8ea7642ff726e982499f443efe7"
 
 [metadata.files]
 click = [
