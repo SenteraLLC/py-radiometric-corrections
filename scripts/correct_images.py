@@ -17,7 +17,7 @@ tqdm.pandas()
 
 
 def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
-                      delete_original, exiftool_path, register):
+                      delete_original, exiftool_path):
 
     def _flag_format(flag):
         if flag:
