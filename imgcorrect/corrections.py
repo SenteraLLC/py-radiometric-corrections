@@ -104,4 +104,7 @@ def apply_corrections(image_df_row):
 
     image_arr = image_arr * image_df_row.correction_coefficient
 
+    if image_df_row.sensor == "6x" and image_df_row.output_uint16:
+        image_arr = image_arr.astype(np.uint16)
+
     return image_arr

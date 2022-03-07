@@ -17,7 +17,7 @@ tqdm.pandas()
 
 
 def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
-                      delete_original, exiftool_path):
+                      delete_original, exiftool_path, output_uint16):
 
     def _flag_format(flag):
         if flag:
@@ -73,6 +73,11 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
     # Normalize pixel values in corrected images to original range.
     image_df.correction_coefficient = image_df.correction_coefficient / image_df.groupby('band').correction_coefficient.transform(np.max)
 
+    print(image_df.columns)
+    if(output_uint16):
+        image_df.correction_coefficient = image_df.apply(lambda row: row.correction_coefficient * 16 if row["sensor"] == "6x" else row.correction_coefficient, axis=1)
+        image_df['output_uint16'] = output_uint16
+
     # Apply corrections:
     image_df = image_df.apply(lambda row: imgcorrect.write_image(imgcorrect.apply_corrections(row), row), axis=1)
 
@@ -120,6 +125,8 @@ if __name__ == '__main__':
     parser.add_argument('--exiftool_path', '-e', default=None,
                         help="Path to ExifTool executable. ExifTool is required for the conversion; if not passed, "
                              "the script will use a bundled ExifTool executable.")
+    parser.add_argument('--output_uint16', '-u', action='store_true',
+                        help="Change output datatype to uint16. Only available for 6x imagery.")
 
     args = parser.parse_args()
 

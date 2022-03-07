@@ -1,3 +1,35 @@
+"""
+Define criteria for identifying sensors and their correction settings.
+Usage; add dictionary entries of the following format:
+{
+    'criteria': {  # required
+        exif key: substring of exif value,
+        ...
+    },
+    'settings': {  # required
+        'sensor': sensor name as string,
+        'cal_in_path': boolean indicating whether or not calibration images
+                       can be identified based on a substring in their paths
+                       ex: calibration images are all named CAL_...tif
+                       and non-calibration images are all named IMG_...tif,
+        'independent_ils': boolean indicating whether or not image metadata
+                           includes band-specific SunSensor information. If
+                           False, clear band ILS data will be used instead,
+        'ignore_image_types': by default, all .tiff and .jpg images in the
+                            input directory are processed. Any file types
+                            added to this list will cause files of that type
+                            that meet their associated criteria not to be
+                            processed,
+    },
+    'bands': an optional list of tuples for sensors that describe multiple
+             bands in a single image. 
+             format: (band name, band math coefficients, band metadata position)
+             band name: determines name of band output folder
+             band math coefficients: pixel = red*c0 + green*c1 + blue*c2
+             band metadata position: index of band specific metadata
+}
+"""
+
 sensor_defs = [
     {
         'criteria': {
@@ -74,6 +106,9 @@ sensor_defs = [
             'sensor': '6x',
             'cal_in_path': True,
             'independent_ils': True,
+            'ignore_image_types': [
+                '.jpg'
+            ]
         }
     },
 ]
