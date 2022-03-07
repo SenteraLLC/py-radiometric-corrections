@@ -49,5 +49,4 @@ def copy_exif(image_df_row, exiftool_path):
     edit_results = subprocess.run(edit_command, capture_output=True)
 
     if edit_results.returncode != 0:
-        print(edit_results)
         raise ValueError("Exiftool edit command did not run successfully.")
