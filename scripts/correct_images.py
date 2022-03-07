@@ -73,7 +73,6 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
     # Normalize pixel values in corrected images to original range.
     image_df.correction_coefficient = image_df.correction_coefficient / image_df.groupby('band').correction_coefficient.transform(np.max)
 
-    print(image_df.columns)
     if(output_uint16):
         image_df.correction_coefficient = image_df.apply(lambda row: row.correction_coefficient * 16 if row["sensor"] == "6x" else row.correction_coefficient, axis=1)
         image_df['output_uint16'] = output_uint16

@@ -1,10 +1,7 @@
 import imgparse
 import logging
-import os
 
-import cv2 as cv
 import numpy as np
-
 from PIL import Image
 
 from imgcorrect import detect_panel, io

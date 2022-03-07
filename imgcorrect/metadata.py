@@ -1,10 +1,7 @@
 import subprocess
 import logging
-import os
 
 import imgparse
-
-from glob import glob
 
 logger = logging.getLogger(__name__)
 
