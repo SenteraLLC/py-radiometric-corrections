@@ -17,7 +17,7 @@ tqdm.pandas()
 
 
 def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
-                      delete_original, exiftool_path, normalize, output_uint16):
+                      delete_original, exiftool_path, output_uint16):
 
     def _flag_format(flag):
         if flag:
@@ -70,12 +70,8 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
 
     image_df['correction_coefficient'] = image_df.apply(lambda row: imgcorrect.compute_correction_coefficient(row), axis=1)
 
-    if(output_uint16):
-        image_df.correction_coefficient = image_df.correction_coefficient * np.iinfo(np.uint16).max
-        image_df['output_uint16'] = output_uint16
-
     # Apply corrections:
-    image_df = image_df.apply(lambda row: imgcorrect.write_image(imgcorrect.apply_corrections(row), row, output_uint16), axis=1)
+    image_df = image_df.apply(lambda row: imgcorrect.write_image(imgcorrect.apply_corrections(row, output_uint16), row), axis=1)
 
     try:
         # Copy EXIF:
