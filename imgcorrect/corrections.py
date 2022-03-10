@@ -87,7 +87,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
 def compute_correction_coefficient(image_df_row):
     return image_df_row.slope_coefficient / (image_df_row.autoexposure * image_df_row.ILS_ratio)
 
-def apply_corrections(image_df_row):
+def apply_corrections(image_df_row, output_uint16):
     logger.info("Applying correction to image: %s", image_df_row.image_path)
 
     image_arr = np.asarray(Image.open(image_df_row.image_path)).astype(np.float32)
@@ -101,7 +101,8 @@ def apply_corrections(image_df_row):
 
     image_arr = image_arr * image_df_row.correction_coefficient
 
-    if image_df_row.sensor == "6x" and image_df_row.output_uint16:
+    if image_df_row.sensor == "6x" and output_uint16:
+        image_arr = image_arr * np.iinfo(np.uint16).max
         image_arr = image_arr.astype(np.uint16)
 
     return image_arr
