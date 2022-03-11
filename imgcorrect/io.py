@@ -16,48 +16,43 @@ from imgcorrect.sensor_defs import sensor_defs
 logger = logging.getLogger(__name__)
 
 
-def apply_sensor_settings(image_df):
-    return_df = pd.DataFrame()
+def apply_sensor_settings(row):
+    for s in sensor_defs:
+        # verify image metadata matches that of a supported sensor
+        meets_criteria = True
+        for key, val in s['criteria'].items():
+            if key not in row['EXIF'] or val not in str(row['EXIF'][key]):
+                meets_criteria = False
+        if meets_criteria:
+            # apply settings for that sensor
+            for key, val in s['settings'].items():
+                row[key] = val
 
-    for index, row in image_df.iterrows():
-        for s in sensor_defs:
-            # verify image metadata matches that of a supported sensor
-            meets_criteria = True
-            for key, val in s['criteria'].items():
-                if key not in row['EXIF'] or val not in str(row['EXIF'][key]):
-                    meets_criteria = False
-            if meets_criteria:
-                # apply settings for that sensor
-                for key, val in s['settings'].items():
-                    row[key] = val
-
-                # ignore images with extensions in settings['ignore_image_types']
-                if 'ignore_image_types' in row and os.path.splitext(row['image_path'])[1] in row['ignore_image_types']:
-                    logger.info(f"Ignoring {row['image_path']}")
-                    break
-
-                # if each image contains data for multiple bands, configure accordingly
-                if 'bands' in s:
-                    for band in s['bands']:
-                        row['band'] = band[0]
-                        row['band_math'] = band[1]
-                        row['XMP_index'] = band[2]
-                        row['reduce_xmp'] = True
-                        row['output_path'] = add_band_to_path(row.output_path, band[0]).replace('.jpg', '.tif')
-                        return_df = return_df.append(row, ignore_index=True)
-                # otherwise, assume band is indicated in root folder name
-                else:
-                    row['band'] = re.search(r"[A-Za-z]+", os.path.basename(row.image_root)).group(0).lower()
-                    row['XMP_index'] = 0
-                    row['reduce_xmp'] = False
-                    return_df = return_df.append(row, ignore_index=True)
-
+            # ignore images with extensions in settings['ignore_image_types']
+            if 'ignore_image_types' in row and os.path.splitext(row['image_path'])[1] in row['ignore_image_types']:
+                logger.info(f"Ignoring {row['image_path']}")
                 break
-        else:
-            logger.error('Sensor not supported')
-            raise Exception('Sensor not supported')
 
-    return return_df
+            # if each image contains data for multiple bands, configure accordingly
+            if 'bands' in s:
+                for band in s['bands']:
+                    row['band'] = band[0]
+                    row['band_math'] = band[1]
+                    row['XMP_index'] = band[2]
+                    row['reduce_xmp'] = True
+                    row['output_path'] = add_band_to_path(row.output_path, band[0]).replace('.jpg', '.tif')
+            # otherwise, assume band is indicated in root folder name
+            else:
+                row['band'] = re.search(r"[A-Za-z]+", os.path.basename(row.image_root)).group(0).lower()
+                row['XMP_index'] = 0
+                row['reduce_xmp'] = False
+
+            break
+    else:
+        logger.error('Sensor not supported')
+        raise Exception('Sensor not supported')
+
+    return row
         
     
 def create_image_df(input_path, output_path):
@@ -118,12 +113,13 @@ def move_corrected_images(image_df):
     image_df.apply(lambda row: move_images(row), axis=1)
 
 
-def write_image(image_arr_corrected, image_df_row):
-    if image_df_row.sensor == '6x':
-        temp_path = image_df_row.image_path.replace('.tif', '_f32.tif')
-    else:
-        temp_path = add_band_to_path(image_df_row.image_path, image_df_row.band).replace('.jpg', '.tif')
-        os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+def write_image(image_arr_corrected, image_df_row, temp_dir):
+    path_list = os.path.normpath(image_df_row.image_path).split(os.path.sep)
+    path_list[0] = temp_dir
+    temp_path = os.path.join(*path_list)
+    if image_df_row.sensor != '6x':
+        temp_path = add_band_to_path(temp_path, image_df_row.band).replace('.jpg', '.tif')
+    os.makedirs(os.path.dirname(temp_path), exist_ok=True)
     # noinspection PyTypeChecker
     tf.imwrite(temp_path, image_arr_corrected)
 

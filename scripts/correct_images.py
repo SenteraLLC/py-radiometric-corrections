@@ -1,8 +1,8 @@
 import argparse
 import logging
-import numpy as np
 import os
 import sys
+import tempfile
 from tqdm import tqdm
 
 import imgparse
@@ -17,7 +17,7 @@ tqdm.pandas()
 
 
 def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
-                      delete_original, exiftool_path, output_uint16):
+                      delete_original, exiftool_path):
 
     def _flag_format(flag):
         if flag:
@@ -47,10 +47,10 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
     image_df['EXIF'] = image_df.image_path.apply(imgparse.get_exif_data)
 
     # Determine sensor type apply sensor specific settings
-    image_df = imgcorrect.apply_sensor_settings(image_df)
+    image_df = image_df.apply(imgcorrect.apply_sensor_settings, axis=1)
 
     # Get autoexposure correction:
-    image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF), axis=1)
+    image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF) / 100, axis=1)
 
     # Split out calibration images, if present:
     if not no_reflectance_correct:
@@ -70,10 +70,11 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
 
     image_df['correction_coefficient'] = image_df.apply(lambda row: imgcorrect.compute_correction_coefficient(row), axis=1)
 
-    # Apply corrections:
-    image_df = image_df.apply(lambda row: imgcorrect.write_image(imgcorrect.apply_corrections(row, output_uint16), row), axis=1)
 
-    try:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Apply corrections:
+        image_df = image_df.apply(lambda row: imgcorrect.write_image(imgcorrect.apply_corrections(row), row, temp_dir), axis=1)
+
         # Copy EXIF:
         logger.info("Writing EXIF data...")
         # progress_apply is tqdm version of apply
@@ -84,12 +85,8 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
             imgcorrect.delete_all_originals(image_df)
 
         # Move output imagery to correct output directory:
-        if (output_path and (output_path != input_path)) or delete_original:
-            imgcorrect.move_corrected_images(image_df)
+        imgcorrect.move_corrected_images(image_df)
 
-    except:
-        image_df.temp_path.apply(os.remove)
-        raise
 
 
 if __name__ == '__main__':
@@ -117,8 +114,6 @@ if __name__ == '__main__':
     parser.add_argument('--exiftool_path', '-e', default=None,
                         help="Path to ExifTool executable. ExifTool is required for the conversion; if not passed, "
                              "the script will use a bundled ExifTool executable.")
-    parser.add_argument('--output_uint16', '-u', action='store_true',
-                        help="Change output datatype to uint16. Only available for 6x imagery.")
 
     args = parser.parse_args()
 

@@ -19,7 +19,7 @@ def compute_ils_correction(image_df):
         return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed='both').mean()
 
     def _get_ILS(row):
-        return imgparse.get_ils(row.image_path, use_clear_channel=not row.independent_ils)
+        return imgparse.get_ils(row.image_path) #, use_clear_channel=not row.independent_ils)
 
     try:
         image_df['ILS'] = image_df.apply(_get_ILS, axis=1)
@@ -87,7 +87,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
 def compute_correction_coefficient(image_df_row):
     return image_df_row.slope_coefficient / (image_df_row.autoexposure * image_df_row.ILS_ratio)
 
-def apply_corrections(image_df_row, output_uint16):
+def apply_corrections(image_df_row):
     logger.info("Applying correction to image: %s", image_df_row.image_path)
 
     image_arr = np.asarray(Image.open(image_df_row.image_path)).astype(np.float32)
@@ -100,9 +100,5 @@ def apply_corrections(image_df_row, output_uint16):
         image_arr = detect_panel.isolate_band(image_arr, image_df_row.band_math)
 
     image_arr = image_arr * image_df_row.correction_coefficient
-
-    if image_df_row.sensor == "6x" and output_uint16:
-        image_arr = image_arr * np.iinfo(np.uint16).max
-        image_arr = image_arr.astype(np.uint16)
 
     return image_arr
