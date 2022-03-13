@@ -19,7 +19,7 @@ def compute_ils_correction(image_df):
         return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed='both').mean()
 
     def _get_ILS(row):
-        return imgparse.get_ils(row.image_path) #, use_clear_channel=not row.independent_ils)
+        return imgparse.get_ils(row.image_path)[0] #, use_clear_channel=not row.independent_ils)
 
     try:
         image_df['ILS'] = image_df.apply(_get_ILS, axis=1)
@@ -29,6 +29,7 @@ def compute_ils_correction(image_df):
     image_df['timestamp'] = image_df.apply(lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1)
     image_df = image_df.set_index('timestamp', drop=True).sort_index()
 
+    image_df.ILS.apply(print)
     image_df['averaged_ILS'] = image_df.groupby('band').ILS.transform(_rolling_avg)
 
     image_df['ILS_ratio'] = image_df.groupby('band').averaged_ILS.transform(lambda df: df / df.mean())
@@ -46,7 +47,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         return np.average(coeffs[cent-wfhm:cent+wfhm+1])
 
     def _get_ils_scaling(band_row):
-        calibration_img_ils = imgparse.get_ils(band_row.image_path)
+        calibration_img_ils = imgparse.get_ils(band_row.image_path)[0]
         return band_row.ILS / calibration_img_ils
 
     if calibration_df.empty:
