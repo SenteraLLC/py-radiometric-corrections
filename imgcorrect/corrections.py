@@ -29,7 +29,6 @@ def compute_ils_correction(image_df):
     image_df['timestamp'] = image_df.apply(lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1)
     image_df = image_df.set_index('timestamp', drop=True).sort_index()
 
-    image_df.ILS.apply(print)
     image_df['averaged_ILS'] = image_df.groupby('band').ILS.transform(_rolling_avg)
 
     image_df['ILS_ratio'] = image_df.groupby('band').averaged_ILS.transform(lambda df: df / df.mean())
