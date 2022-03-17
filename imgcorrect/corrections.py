@@ -19,7 +19,7 @@ def compute_ils_correction(image_df):
         return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed='both').mean()
 
     def _get_ILS(row):
-        return imgparse.get_ils(row.image_path)[0] #, use_clear_channel=not row.independent_ils)
+        return imgparse.get_ils(row.image_path)[0]
 
     try:
         image_df['ILS'] = image_df.apply(_get_ILS, axis=1)

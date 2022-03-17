@@ -50,7 +50,7 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
     image_df = image_df.apply(imgcorrect.apply_sensor_settings, axis=1)
 
     # Get autoexposure correction:
-    image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF) / 100, axis=1)
+    image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF), axis=1)
 
     # Split out calibration images, if present:
     if not no_reflectance_correct:
