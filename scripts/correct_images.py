@@ -88,7 +88,6 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
         imgcorrect.move_corrected_images(image_df)
 
 
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
