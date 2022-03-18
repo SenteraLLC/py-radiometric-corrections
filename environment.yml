@@ -20,5 +20,4 @@ dependencies:
   # subpackage dependencies
   # Sentera dependencies
   - pip:
-    - git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v1.10.6
-    - git+https://github.com/SenteraLLC/py-image-registration.git@v1.1.1
+    - git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v1.12.4
