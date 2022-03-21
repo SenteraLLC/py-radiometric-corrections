@@ -17,7 +17,7 @@ tqdm.pandas()
 
 
 def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
-                      delete_original, exiftool_path):
+                      delete_original, exiftool_path, uint16_output):
 
     def _flag_format(flag):
         if flag:
@@ -70,10 +70,13 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
 
     image_df['correction_coefficient'] = image_df.apply(lambda row: imgcorrect.compute_correction_coefficient(row), axis=1)
 
-
     with tempfile.TemporaryDirectory() as temp_dir:
         # Apply corrections:
         image_df = image_df.apply(lambda row: imgcorrect.write_image(imgcorrect.apply_corrections(row), row, temp_dir), axis=1)
+
+        # Adjust scale if necessary:
+        if no_reflectance_correct or uint16_output:
+            image_df.temp_path.apply(lambda path: imgcorrect.adjust_scale(path, image_df.max_val.max(), no_reflectance_correct, uint16_output))
 
         # Copy EXIF:
         logger.info("Writing EXIF data...")
@@ -113,6 +116,9 @@ if __name__ == '__main__':
     parser.add_argument('--exiftool_path', '-e', default=None,
                         help="Path to ExifTool executable. ExifTool is required for the conversion; if not passed, "
                              "the script will use a bundled ExifTool executable.")
+    parser.add_argument('--uint16_output', '-u', action='store_true',
+                        help="If selected, scale of output values will be adjusted to 0-65535 and dtype will be "
+                            "changed to uint16.")
 
     args = parser.parse_args()
 

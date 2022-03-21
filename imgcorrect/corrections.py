@@ -1,8 +1,11 @@
+from pickletools import uint1
 import imgparse
 import logging
 
+import cv2 as cv
 import numpy as np
 from PIL import Image
+import tifffile as tf
 
 from imgcorrect import detect_panel, io
 
@@ -87,6 +90,29 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
 def compute_correction_coefficient(image_df_row):
     return image_df_row.slope_coefficient / (image_df_row.autoexposure * image_df_row.ILS_ratio)
 
+def isolate_band(image, band_math_arr):
+    """
+    Isolates a single band by performing bandmath on a multi-channel image
+    :param image: The multi-channel image
+    :param band_math_arr: Describes the band math required to isolate the desired band
+    :return: The isolated band
+    """
+    red_ch, green_ch, blue_ch = cv.split(image)
+    return (
+        (band_math_arr[0] * red_ch if band_math_arr[0] != 0 else 0) +
+        (band_math_arr[1] * green_ch if band_math_arr[1] != 0 else 0) +
+        (band_math_arr[2] * blue_ch if band_math_arr[2] != 0 else 0)
+    )
+
+def adjust_scale(path, max, normalize, uint16_output):
+        image_arr = np.asarray(Image.open(path)).astype(np.float32)
+        if normalize:
+            image_arr = image_arr / max
+        if uint16_output:
+            image_arr = image_arr * 65535
+            image_arr = image_arr.astype(np.uint16)
+        tf.imwrite(path, image_arr)
+
 def apply_corrections(image_df_row):
     logger.info("Applying correction to image: %s", image_df_row.image_path)
 
@@ -97,7 +123,7 @@ def apply_corrections(image_df_row):
         saturation_indices = image_arr >= 255
         image_arr[saturation_indices] = np.nan
         # perform band math
-        image_arr = detect_panel.isolate_band(image_arr, image_df_row.band_math)
+        image_arr = isolate_band(image_arr, image_df_row.band_math)
 
     image_arr = image_arr * image_df_row.correction_coefficient
 

@@ -123,6 +123,7 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     # noinspection PyTypeChecker
     tf.imwrite(temp_path, image_arr_corrected)
 
+    image_df_row['max_val'] = np.max(image_arr_corrected)
     image_df_row['temp_path'] = temp_path
     return image_df_row
 
