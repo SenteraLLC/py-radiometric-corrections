@@ -2,6 +2,7 @@ import csv
 import logging
 import os
 import re
+import shutil
 
 from glob import glob
 
@@ -104,7 +105,7 @@ def add_band_to_path(path, band):
 
 
 def move_images(image_df_row):
-    os.rename(image_df_row.temp_path, image_df_row.output_path)
+    shutil.move(image_df_row.temp_path, image_df_row.output_path)
 
 
 def move_corrected_images(image_df):
