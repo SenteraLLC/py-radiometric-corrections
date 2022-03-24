@@ -47,7 +47,7 @@ def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_r
     image_df['EXIF'] = image_df.image_path.apply(imgparse.get_exif_data)
 
     # Determine sensor type apply sensor specific settings
-    image_df = image_df.apply(imgcorrect.apply_sensor_settings, axis=1)
+    image_df = imgcorrect.apply_sensor_settings(image_df)
 
     # Get autoexposure correction:
     image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF), axis=1)
