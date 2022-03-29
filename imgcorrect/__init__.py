@@ -4,7 +4,8 @@ from imgcorrect.corrections import (
     compute_ils_correction,
     compute_reflectance_correction,
     compute_correction_coefficient,
-    apply_corrections
+    apply_corrections,
+    adjust_scale
 )
 
 from imgcorrect.io import (
@@ -24,6 +25,7 @@ __all__ = [
     "compute_reflectance_correction",
     "compute_correction_coefficient",
     "apply_corrections",
+    "adjust_scale",
     "apply_sensor_settings",
     "create_image_df",
     "create_cal_df",

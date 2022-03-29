@@ -17,43 +17,48 @@ from imgcorrect.sensor_defs import sensor_defs
 logger = logging.getLogger(__name__)
 
 
-def apply_sensor_settings(row):
-    for s in sensor_defs:
-        # verify image metadata matches that of a supported sensor
-        meets_criteria = True
-        for key, val in s['criteria'].items():
-            if key not in row['EXIF'] or val not in str(row['EXIF'][key]):
-                meets_criteria = False
-        if meets_criteria:
-            # apply settings for that sensor
-            for key, val in s['settings'].items():
-                row[key] = val
+def apply_sensor_settings(image_df):
+    rows = []
 
-            # ignore images with extensions in settings['ignore_image_types']
-            if 'ignore_image_types' in row and os.path.splitext(row['image_path'])[1] in row['ignore_image_types']:
-                logger.info(f"Ignoring {row['image_path']}")
+    for index, row in image_df.iterrows():
+        for s in sensor_defs:
+            # verify image metadata matches that of a supported sensor
+            meets_criteria = True
+            for key, val in s['criteria'].items():
+                if key not in row['EXIF'] or val not in str(row['EXIF'][key]):
+                    meets_criteria = False
+            if meets_criteria:
+                # apply settings for that sensor
+                for key, val in s['settings'].items():
+                    row[key] = val
+
+                # ignore images with extensions in settings['ignore_image_types']
+                if 'ignore_image_types' in row and os.path.splitext(row['image_path'])[1] in row['ignore_image_types']:
+                    logger.info(f"Ignoring {row['image_path']}")
+                    break
+
+                # if each image contains data for multiple bands, configure accordingly
+                if 'bands' in s:
+                    for band in s['bands']:
+                        row['band'] = band[0]
+                        row['band_math'] = band[1]
+                        row['XMP_index'] = band[2]
+                        row['reduce_xmp'] = True
+                        row['output_path'] = add_band_to_path(row.output_path, band[0]).replace('.jpg', '.tif')
+                        rows.append(row)
+                # otherwise, assume band is indicated in root folder name
+                else:
+                    row['band'] = re.search(r"[A-Za-z]+", os.path.basename(row.image_root)).group(0).lower()
+                    row['XMP_index'] = 0
+                    row['reduce_xmp'] = False
+                    rows.append(row)
+
                 break
+        else:
+            logger.error('Sensor not supported')
+            raise Exception('Sensor not supported')
 
-            # if each image contains data for multiple bands, configure accordingly
-            if 'bands' in s:
-                for band in s['bands']:
-                    row['band'] = band[0]
-                    row['band_math'] = band[1]
-                    row['XMP_index'] = band[2]
-                    row['reduce_xmp'] = True
-                    row['output_path'] = add_band_to_path(row.output_path, band[0]).replace('.jpg', '.tif')
-            # otherwise, assume band is indicated in root folder name
-            else:
-                row['band'] = re.search(r"[A-Za-z]+", os.path.basename(row.image_root)).group(0).lower()
-                row['XMP_index'] = 0
-                row['reduce_xmp'] = False
-
-            break
-    else:
-        logger.error('Sensor not supported')
-        raise Exception('Sensor not supported')
-
-    return row
+    return pd.DataFrame(rows)
         
     
 def create_image_df(input_path, output_path):
@@ -124,6 +129,7 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     # noinspection PyTypeChecker
     tf.imwrite(temp_path, image_arr_corrected)
 
+    image_df_row['max_val'] = np.max(image_arr_corrected)
     image_df_row['temp_path'] = temp_path
     return image_df_row
 
