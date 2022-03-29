@@ -1,4 +1,3 @@
-from pickletools import uint1
 import imgparse
 import logging
 
