@@ -102,13 +102,27 @@ sensor_defs = [
             'Image Make': 'Sentera',
             'Image Model': '21214'
         },
+        'ignore_criteria': {
+            'Image Model': '20MP-ERS'  # RGB
+        },
         'settings': {
             'sensor': '6x',
             'cal_in_path': True,
             'independent_ils': True,
-            'ignore_image_types': [
-                '.jpg'
-            ]
+        }
+    },
+    {
+        'criteria': {
+            'Image Make': 'Sentera',
+            'Image Model': '21216'
+        },
+        'ignore_criteria': {
+            'Image Model': '82KP'  # LWIR
+        },
+        'settings': {
+            'sensor': '6x_thermal',
+            'cal_in_path': True,
+            'independent_ils': True
         }
     },
 ]

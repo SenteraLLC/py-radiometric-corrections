@@ -84,13 +84,28 @@ def extract_panel_bounds(image):
         return None
 
 
+def isolate_band(image, band_math_arr):
+    """
+    Isolates a single band by performing bandmath on a multi-channel image
+    :param image: The multi-channel image
+    :param band_math_arr: Describes the band math required to isolate the desired band
+    :return: The isolated band
+    """
+    red_ch, green_ch, blue_ch = cv.split(image)
+    return (
+        (band_math_arr[0] * red_ch if band_math_arr[0] != 0 else 0) +
+        (band_math_arr[1] * green_ch if band_math_arr[1] != 0 else 0) +
+        (band_math_arr[2] * blue_ch if band_math_arr[2] != 0 else 0)
+    )
+
+
 def get_reflectance(row):
     """
     Detects pixels in the reflectance panel and calculates the average reflectance value.
     :param image_path: The path to a calibration image
     :return: The average value of the reflectance panel a valid calibration image, NaN if image is invalid
     """
-    if row['sensor'] == '6x':
+    if row['sensor'] in ['6x', '6x_thermal']:
         # Read the original (12-bit) tiff with the next largest commonly used container (16-bit)
         image = np.asarray(Image.open(row['image_path'])).astype(np.uint16)
         # OpenCV aruco detection only accepts 8-bit data
