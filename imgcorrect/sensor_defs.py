@@ -6,6 +6,10 @@ Usage; add dictionary entries of the following format:
         exif key: substring of exif value,
         ...
     },
+    'ignore_criteria': {  # optional. Images that meet criteria and ignore_criteria will be ignored and will not throw errors
+        exif key: substring of exif value,
+        ...
+    },
     'settings': {  # required
         'sensor': sensor name as string,
         'cal_in_path': boolean indicating whether or not calibration images
@@ -15,11 +19,6 @@ Usage; add dictionary entries of the following format:
         'independent_ils': boolean indicating whether or not image metadata
                            includes band-specific SunSensor information. If
                            False, clear band ILS data will be used instead,
-        'ignore_image_types': by default, all .tiff and .jpg images in the
-                            input directory are processed. Any file types
-                            added to this list will cause files of that type
-                            that meet their associated criteria not to be
-                            processed,
     },
     'bands': an optional list of tuples for sensors that describe multiple
              bands in a single image. 
@@ -102,13 +101,27 @@ sensor_defs = [
             'Image Make': 'Sentera',
             'Image Model': '21214'
         },
+        'ignore_criteria': {
+            'Image Model': '20MP-ERS'  # RGB
+        },
         'settings': {
             'sensor': '6x',
             'cal_in_path': True,
             'independent_ils': True,
-            'ignore_image_types': [
-                '.jpg'
-            ]
+        }
+    },
+    {
+        'criteria': {
+            'Image Make': 'Sentera',
+            'Image Model': '21216'
+        },
+        'ignore_criteria': {
+            'Image Model': '82KP'  # LWIR
+        },
+        'settings': {
+            'sensor': '6x_thermal',
+            'cal_in_path': True,
+            'independent_ils': True
         }
     },
 ]

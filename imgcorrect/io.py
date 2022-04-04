@@ -28,14 +28,19 @@ def apply_sensor_settings(image_df):
                 if key not in row['EXIF'] or val not in str(row['EXIF'][key]):
                     meets_criteria = False
             if meets_criteria:
+                # ignore images that meet ignore_criteria
+                if 'ignore_criteria' in s:
+                    ignore = False
+                    for key, val in s['ignore_criteria'].items():
+                        if key in row['EXIF'] and val in str(row['EXIF'][key]):
+                            logger.info(f"Ignoring {row['image_path']}")
+                            ignore = True
+                    if ignore:
+                        break
+
                 # apply settings for that sensor
                 for key, val in s['settings'].items():
                     row[key] = val
-
-                # ignore images with extensions in settings['ignore_image_types']
-                if 'ignore_image_types' in row and os.path.splitext(row['image_path'])[1] in row['ignore_image_types']:
-                    logger.info(f"Ignoring {row['image_path']}")
-                    break
 
                 # if each image contains data for multiple bands, configure accordingly
                 if 'bands' in s:
@@ -123,7 +128,7 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     path_list = os.path.normpath(image_df_row.image_path).split(os.path.sep)
     path_list[0] = temp_dir
     temp_path = os.path.join(*path_list)
-    if image_df_row.sensor != '6x':
+    if 'band_math' in image_df_row.index:
         temp_path = add_band_to_path(temp_path, image_df_row.band).replace('.jpg', '.tif')
     os.makedirs(os.path.dirname(temp_path), exist_ok=True)
     # noinspection PyTypeChecker

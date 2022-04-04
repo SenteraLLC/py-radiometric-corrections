@@ -5,7 +5,7 @@ from imgcorrect.corrections import (
     compute_reflectance_correction,
     compute_correction_coefficient,
     apply_corrections,
-    adjust_scale
+    adjust_scale,
 )
 
 from imgcorrect.io import (
