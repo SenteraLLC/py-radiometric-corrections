@@ -105,7 +105,7 @@ def apply_corrections(image_df_row):
 
     image_arr = np.asarray(Image.open(image_df_row.image_path)).astype(np.float32)
     # for images that represent data for multiple bands
-    if image_df_row.sensor not in ["6x", "6x_thermal"]:
+    if "band_math" in image_df_row.index:
         # ignore saturated pixels
         saturation_indices = image_arr >= 255
         image_arr[saturation_indices] = np.nan

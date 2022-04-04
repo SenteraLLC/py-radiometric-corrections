@@ -105,7 +105,7 @@ def get_reflectance(row):
     :param image_path: The path to a calibration image
     :return: The average value of the reflectance panel a valid calibration image, NaN if image is invalid
     """
-    if row['sensor'] in ['6x', '6x_thermal']:
+    if not 'band_math' in row.index:
         # Read the original (12-bit) tiff with the next largest commonly used container (16-bit)
         image = np.asarray(Image.open(row['image_path'])).astype(np.uint16)
         # OpenCV aruco detection only accepts 8-bit data

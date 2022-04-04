@@ -128,7 +128,7 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     path_list = os.path.normpath(image_df_row.image_path).split(os.path.sep)
     path_list[0] = temp_dir
     temp_path = os.path.join(*path_list)
-    if image_df_row.sensor not in ['6x', '6x_thermal']:
+    if 'band_math' in image_df_row.index:
         temp_path = add_band_to_path(temp_path, image_df_row.band).replace('.jpg', '.tif')
     os.makedirs(os.path.dirname(temp_path), exist_ok=True)
     # noinspection PyTypeChecker
