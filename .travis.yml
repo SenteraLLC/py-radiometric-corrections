@@ -1,5 +1,5 @@
 language: python
-python: 3.8
+python: 3.9
 
 install:
   - "wget https://exiftool.org/Image-ExifTool-12.40.tar.gz"
@@ -8,7 +8,7 @@ install:
   - "perl Makefile.PL"
   - "sudo make install"
   - "pip install poetry"
-  - "poetry install -vvv"
+  - "poetry install"
 
 script:
   - poetry run pre-commit run --all-files
