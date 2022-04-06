@@ -143,7 +143,7 @@ dji_timestamps = ["timezonefinder (>=5.2.0,<6.0.0)"]
 
 [package.source]
 type = "git"
-url = "git@github.com:SenteraLLC/py-image-metadata-parser"
+url = "https://github.com/SenteraLLC/py-image-metadata-parser.git"
 reference = "v1.12.4"
 resolved_reference = "58c61e53a4facbce0019eecc09c31ef2e11aba92"
 
@@ -453,7 +453,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "8d8724d6f76ab968eeb37a0a28b5a84b7b8103b37e7659e4de6f74683f33f26a"
+content-hash = "bb1a13368e5dba8e7f7340e5ee9611886c3bca0c6a5acd6b0c6c8e98bc13747e"
 
 [metadata.files]
 atomicwrites = [
