@@ -12,5 +12,4 @@ install:
 
 script:
   - poetry run pre-commit run --all-files
-  - poetry run pytest tests
-  
+  - poetry run pytest
