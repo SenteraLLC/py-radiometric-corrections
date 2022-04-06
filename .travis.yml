@@ -7,6 +7,7 @@ install:
   - "cd Image-ExifTool-12.40"
   - "perl Makefile.PL"
   - "sudo make install"
+  - "cd .."
   - "pip install poetry"
   - "poetry install"
 
