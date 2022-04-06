@@ -45,12 +45,13 @@ def apply_sensor_settings(image_df):
                 # if each image contains data for multiple bands, configure accordingly
                 if 'bands' in s:
                     for band in s['bands']:
-                        row['band'] = band[0]
-                        row['band_math'] = band[1]
-                        row['XMP_index'] = band[2]
-                        row['reduce_xmp'] = True
-                        row['output_path'] = add_band_to_path(row.output_path, band[0]).replace('.jpg', '.tif')
-                        rows.append(row)
+                        band_row = row.copy()
+                        band_row['band'] = band[0]
+                        band_row['band_math'] = band[1]
+                        band_row['XMP_index'] = band[2]
+                        band_row['reduce_xmp'] = True
+                        band_row['output_path'] = add_band_to_path(row.output_path, band[0]).replace('.jpg', '.tif')
+                        rows.append(band_row)
                 # otherwise, assume band is indicated in root folder name
                 else:
                     row['band'] = re.search(r"[A-Za-z]+", os.path.basename(row.image_root)).group(0).lower()
@@ -133,6 +134,7 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     os.makedirs(os.path.dirname(temp_path), exist_ok=True)
     # noinspection PyTypeChecker
     tf.imwrite(temp_path, image_arr_corrected)
+    print(temp_path)
 
     image_df_row['max_val'] = np.max(image_arr_corrected)
     image_df_row['temp_path'] = temp_path

@@ -1,12 +1,15 @@
 import imgparse
 import logging
+import os
+import sys
+import tempfile
 
-import cv2 as cv
 import numpy as np
 from PIL import Image
 import tifffile as tf
+from tqdm import tqdm
 
-from imgcorrect import detect_panel, io
+from imgcorrect import detect_panel, io, metadata
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +89,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
 
     return image_df
 
+
 def compute_correction_coefficient(image_df_row):
     return image_df_row.slope_coefficient / (image_df_row.autoexposure * image_df_row.ILS_ratio)
 
@@ -101,7 +105,7 @@ def adjust_scale(path, max, normalize, uint16_output):
 
 
 def apply_corrections(image_df_row):
-    logger.info("Applying correction to image: %s", image_df_row.image_path)
+    logger.debug("Applying correction to image: %s", image_df_row.image_path)
 
     image_arr = np.asarray(Image.open(image_df_row.image_path)).astype(np.float32)
     # for images that represent data for multiple bands
@@ -115,3 +119,77 @@ def apply_corrections(image_df_row):
     image_arr = image_arr * image_df_row.correction_coefficient
 
     return image_arr
+
+
+def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
+                      delete_original, exiftool_path, uint16_output):
+    # Create new `pandas` methods which use `tqdm` progress
+    # (can use tqdm_gui, optional kwargs, etc.)
+    tqdm.pandas()
+
+    if not exiftool_path:
+        if getattr(sys, 'frozen', False):
+            # If the application is run as a bundle, the PyInstaller bootloader
+            # extends the sys module by a flag frozen=True and sets the app
+            # path into variable _MEIPASS'.
+            exiftool_path = os.path.join(sys._MEIPASS, 'exiftool.exe')
+        else:
+            exiftool_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                         'exiftool',
+                                         'exiftool.exe')
+        logger.info("Using bundled executable. Setting ExifTool path to %s", exiftool_path)
+
+    logger.info("ILS corrections: %s", "Disabled" if no_ils_correct else "Enabled")
+    logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
+
+    # Read images:
+    image_df = io.create_image_df(input_path, output_path)
+
+    # Get image metadata:
+    image_df['EXIF'] = image_df.image_path.apply(imgparse.get_exif_data)
+
+    # Determine sensor type apply sensor specific settings
+    image_df = io.apply_sensor_settings(image_df)
+
+    # Get autoexposure correction:
+    image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF), axis=1)
+
+    # Split out calibration images, if present:
+    if not no_reflectance_correct:
+        calibration_df, image_df = io.create_cal_df(image_df, calibration_id)
+
+    # Get ILS correction:
+    if not no_ils_correct:
+        image_df = compute_ils_correction(image_df)
+    else:
+        image_df['ILS_ratio'] = 1
+
+    # Get reflectance correction:
+    if not no_reflectance_correct:
+        image_df = compute_reflectance_correction(image_df, calibration_df, not no_ils_correct)
+    else:
+        image_df['slope_coefficient'] = 1
+
+    image_df['correction_coefficient'] = image_df.apply(lambda row: compute_correction_coefficient(row), axis=1)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Apply corrections:
+        logger.info("Applying image corrections...")
+        image_df = image_df.progress_apply(lambda row: io.write_image(apply_corrections(row), row, temp_dir), axis=1)
+
+        # Adjust scale if necessary:
+        if no_reflectance_correct or uint16_output:
+            logger.info("Adjusting output scale...")
+            image_df.temp_path.progress_apply(lambda path: adjust_scale(path, image_df.max_val.max(), no_reflectance_correct, uint16_output))
+
+        # Copy EXIF:
+        logger.info("Writing EXIF data...")
+        # progress_apply is tqdm version of apply
+        image_df.progress_apply(lambda row: metadata.copy_exif(row, exiftool_path), axis=1)
+
+        # Delete input imagery if requested:
+        if delete_original:
+            io.delete_all_originals(image_df)
+
+        # Move output imagery to correct output directory:
+        io.move_corrected_images(image_df)

@@ -1,94 +1,10 @@
 import argparse
 import logging
-import os
-import sys
-import tempfile
-from tqdm import tqdm
 
-import imgparse
-import imgcorrect
+from imgcorrect import corrections
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
-
-# Create new `pandas` methods which use `tqdm` progress
-# (can use tqdm_gui, optional kwargs, etc.)
-tqdm.pandas()
-
-
-def correct_images(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct,
-                      delete_original, exiftool_path, uint16_output):
-
-    def _flag_format(flag):
-        if flag:
-            return "Enabled"
-        else:
-            return "Disabled"
-
-    if not exiftool_path:
-        if getattr(sys, 'frozen', False):
-            # If the application is run as a bundle, the PyInstaller bootloader
-            # extends the sys module by a flag frozen=True and sets the app
-            # path into variable _MEIPASS'.
-            exiftool_path = os.path.join(sys._MEIPASS, 'exiftool.exe')
-        else:
-            exiftool_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                         'exiftool',
-                                         'exiftool.exe')
-        logger.info("Using bundled executable. Setting ExifTool path to %s", exiftool_path)
-
-    logger.info("ILS corrections: %s", _flag_format(not no_ils_correct))
-    logger.info("Delete original: %s", _flag_format(delete_original))
-
-    # Read images:
-    image_df = imgcorrect.create_image_df(input_path, output_path)
-
-    # Get image metadata:
-    image_df['EXIF'] = image_df.image_path.apply(imgparse.get_exif_data)
-
-    # Determine sensor type apply sensor specific settings
-    image_df = imgcorrect.apply_sensor_settings(image_df)
-
-    # Get autoexposure correction:
-    image_df['autoexposure'] = image_df.apply(lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF), axis=1)
-
-    # Split out calibration images, if present:
-    if not no_reflectance_correct:
-        calibration_df, image_df = imgcorrect.create_cal_df(image_df, calibration_id)
-
-    # Get ILS correction:
-    if not no_ils_correct:
-        image_df = imgcorrect.compute_ils_correction(image_df)
-    else:
-        image_df['ILS_ratio'] = 1
-
-    # Get reflectance correction:
-    if not no_reflectance_correct:
-        image_df = imgcorrect.compute_reflectance_correction(image_df, calibration_df, not no_ils_correct)
-    else:
-        image_df['slope_coefficient'] = 1
-
-    image_df['correction_coefficient'] = image_df.apply(lambda row: imgcorrect.compute_correction_coefficient(row), axis=1)
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Apply corrections:
-        image_df = image_df.apply(lambda row: imgcorrect.write_image(imgcorrect.apply_corrections(row), row, temp_dir), axis=1)
-
-        # Adjust scale if necessary:
-        if no_reflectance_correct or uint16_output:
-            image_df.temp_path.apply(lambda path: imgcorrect.adjust_scale(path, image_df.max_val.max(), no_reflectance_correct, uint16_output))
-
-        # Copy EXIF:
-        logger.info("Writing EXIF data...")
-        # progress_apply is tqdm version of apply
-        image_df.progress_apply(lambda row: imgcorrect.copy_exif(row, exiftool_path), axis=1)
-
-        # Delete input imagery if requested:
-        if delete_original:
-            imgcorrect.delete_all_originals(image_df)
-
-        # Move output imagery to correct output directory:
-        imgcorrect.move_corrected_images(image_df)
 
 
 if __name__ == '__main__':
@@ -122,4 +38,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    correct_images(**vars(args))
+    corrections.correct_images(**vars(args))
