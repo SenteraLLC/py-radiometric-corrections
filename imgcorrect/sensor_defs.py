@@ -1,5 +1,7 @@
+# flake8: noqa
 """
 Define criteria for identifying sensors and their correction settings.
+
 Usage; add dictionary entries of the following format:
 {
     'criteria': {  # required
@@ -21,7 +23,7 @@ Usage; add dictionary entries of the following format:
                            False, clear band ILS data will be used instead,
     },
     'bands': an optional list of tuples for sensors that describe multiple
-             bands in a single image. 
+             bands in a single image.
              format: (band name, band math coefficients, band metadata position)
              band name: determines name of band output folder
              band math coefficients: pixel = red*c0 + green*c1 + blue*c2
@@ -31,97 +33,81 @@ Usage; add dictionary entries of the following format:
 
 sensor_defs = [
     {
-        'criteria': {
-            'Image Make': 'Sentera',
-            'Image Model': '2102',
-            'EXIF LensModel': '5.4mm-0001_0016'
+        "criteria": {
+            "Image Make": "Sentera",
+            "Image Model": "2102",
+            "EXIF LensModel": "5.4mm-0001_0016",
         },
-        'settings': {
-            'sensor': 'D4K_NarrowNDRE',
-            'cal_in_path': False,
-            'independent_ils': False,
+        "settings": {
+            "sensor": "D4K_NarrowNDRE",
+            "cal_in_path": False,
+            "independent_ils": False,
         },
-        'bands': [
-            ('rededge', [1.0, 0.0, -0.956], 0),
-            ('nir', [-0.341, 0.0, 2.426], 2)
-        ]
+        "bands": [("rededge", [1.0, 0.0, -0.956], 0), ("nir", [-0.341, 0.0, 2.426], 2)],
     },
     {
-        'criteria': {
-            'Image Make': 'Sentera',
-            'Image Model': '2102',
-            'EXIF LensModel': '5.4mm-0001_0015'
+        "criteria": {
+            "Image Make": "Sentera",
+            "Image Model": "2102",
+            "EXIF LensModel": "5.4mm-0001_0015",
         },
-        'settings': {
-            'sensor': 'D4K_NarrowNDVI',
-            'cal_in_path': False,
-            'independent_ils': False,
+        "settings": {
+            "sensor": "D4K_NarrowNDVI",
+            "cal_in_path": False,
+            "independent_ils": False,
         },
-        'bands': [
-            ('red', [1.0, 0.0, -0.966], 0),
-            ('nir', [-0.286, 0.0, 4.350], 2)
-        ]
+        "bands": [("red", [1.0, 0.0, -0.966], 0), ("nir", [-0.286, 0.0, 4.350], 2)],
     },
     {
-        'criteria': {
-            'Image Make': 'Sentera',
-            'Image Model': '2102',
-            'EXIF LensModel': '25.0mm-0001_0008'
+        "criteria": {
+            "Image Make": "Sentera",
+            "Image Model": "2102",
+            "EXIF LensModel": "25.0mm-0001_0008",
         },
-        'settings': {
-            'sensor': 'D4K_RGB',
-            'cal_in_path': False,
-            'independent_ils': False,
+        "settings": {
+            "sensor": "D4K_RGB",
+            "cal_in_path": False,
+            "independent_ils": False,
         },
-        'bands': [
-            ('red', [1.0, 0.0, 0.0], 0),
-            ('green', [0.0, 1.0, 0.0], 1),
-            ('blue', [0.0, 0.0, 1.0], 2)
-        ]
+        "bands": [
+            ("red", [1.0, 0.0, 0.0], 0),
+            ("green", [0.0, 1.0, 0.0], 1),
+            ("blue", [0.0, 0.0, 1.0], 2),
+        ],
     },
     {
-        'criteria': {
-            'Image Make': 'Sentera',
-            'Image Model': '2102',
-            'EXIF LensModel': '5.4mm-0001_0014'
+        "criteria": {
+            "Image Make": "Sentera",
+            "Image Model": "2102",
+            "EXIF LensModel": "5.4mm-0001_0014",
         },
-        'settings': {
-            'sensor': 'D4K_NarrowRGB',
-            'cal_in_path': False,
-            'independent_ils': False,
+        "settings": {
+            "sensor": "D4K_NarrowRGB",
+            "cal_in_path": False,
+            "independent_ils": False,
         },
-        'bands': [
-            ('red', [1.0, 0.0, 0.0], 0),
-            ('green', [0.0, 1.0, 0.0], 1),
-            ('blue', [0.0, 0.0, 1.0], 2)
-        ]
+        "bands": [
+            ("red", [1.0, 0.0, 0.0], 0),
+            ("green", [0.0, 1.0, 0.0], 1),
+            ("blue", [0.0, 0.0, 1.0], 2),
+        ],
     },
     {
-        'criteria': {
-            'Image Make': 'Sentera',
-            'Image Model': '21214'
+        "criteria": {"Image Make": "Sentera", "Image Model": "21214"},
+        "ignore_criteria": {"Image Model": "20MP-ERS"},  # RGB
+        "settings": {
+            "sensor": "6x",
+            "cal_in_path": True,
+            "independent_ils": True,
         },
-        'ignore_criteria': {
-            'Image Model': '20MP-ERS'  # RGB
-        },
-        'settings': {
-            'sensor': '6x',
-            'cal_in_path': True,
-            'independent_ils': True,
-        }
     },
     {
-        'criteria': {
-            'Image Make': 'Sentera',
-            'Image Model': '21216'
+        "criteria": {"Image Make": "Sentera", "Image Model": "21216"},
+        "ignore_criteria": {"Image Model": "82KP"},  # LWIR
+        "settings": {
+            "sensor": "6x_thermal",
+            "cal_in_path": True,
+            "independent_ils": True,
         },
-        'ignore_criteria': {
-            'Image Model': '82KP'  # LWIR
-        },
-        'settings': {
-            'sensor': '6x_thermal',
-            'cal_in_path': True,
-            'independent_ils': True
-        }
     },
 ]
