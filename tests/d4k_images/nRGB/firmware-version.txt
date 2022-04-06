@@ -1,3 +1,0 @@
-1.1.0
-2009-00-01-0000
-LEGACY FIRMWARE FILE: See info.txt for more detailed info
