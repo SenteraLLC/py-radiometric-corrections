@@ -2,8 +2,12 @@ language: python
 python: 3.8
 
 install:
+  - "gzip -dc Image-ExifTool-12.40.tar.gz | tar -xf -"
+  - "cd Image-ExifTool-12.40"
+  - "perl Makefile.PL"
+  - "sudo make install"
   - "pip install poetry"
-  - "poetry install"
+  - "poetry install -vvv"
 
 script:
   - poetry run pre-commit run --all-files
