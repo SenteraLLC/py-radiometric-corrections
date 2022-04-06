@@ -134,7 +134,6 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     os.makedirs(os.path.dirname(temp_path), exist_ok=True)
     # noinspection PyTypeChecker
     tf.imwrite(temp_path, image_arr_corrected)
-    print(temp_path)
 
     image_df_row['max_val'] = np.max(image_arr_corrected)
     image_df_row['temp_path'] = temp_path

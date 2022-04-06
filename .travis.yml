@@ -1,5 +1,5 @@
 language: python
-python: 3.9
+python: 3.8
 
 install:
   - "wget https://exiftool.org/Image-ExifTool-12.40.tar.gz"
