@@ -1,5 +1,7 @@
-import subprocess
+"""Copy and modify image metadata."""
+
 import logging
+import subprocess
 
 import imgparse
 
@@ -7,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def copy_exif(image_df_row, exiftool_path):
-    # copy over all metadata exactly as it is
+    """Copy image metadata with necessary changes from original image to corrected image."""
     command = [
         exiftool_path,
         "-config",
