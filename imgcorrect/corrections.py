@@ -146,7 +146,8 @@ def apply_corrections(image_df_row):
     if "band_math" in image_df_row.index:
         # ignore saturated pixels
         saturation_indices = image_arr >= 255
-        image_arr[saturation_indices] = np.nan
+        # ideally set to np.nan, but this messes up the stitching software
+        image_arr[saturation_indices] = 255
         # perform band math
         image_arr = detect_panel.isolate_band(image_arr, image_df_row.band_math)
 
