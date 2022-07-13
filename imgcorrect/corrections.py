@@ -11,7 +11,7 @@ import tifffile as tf
 from PIL import Image
 from tqdm import tqdm
 
-from imgcorrect import detect_panel, io, metadata
+from imgcorrect import detect_panel, io, metadata, thermal_convert
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +195,22 @@ def correct_images(
 
     logger.info("ILS corrections: %s", "Disabled" if no_ils_correct else "Enabled")
     logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
+
+    # Check for LWIR folder and convert images
+    lwir_folder_path = None
+    input_folders = [f for f in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, f))]
+    if not input_folders:
+        if 'lwir' in os.path.split(input_path)[1].lower():
+            lwir_folder_path = input_path
+    for folder in input_folders:
+        if 'lwir' in folder.lower():
+            lwir_folder_path = os.path.join(input_path, folder)
+
+    if lwir_folder_path is not None:
+        lwir_output_path = os.path.join(output_path, os.path.split(lwir_folder_path)[1])
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
+        thermal_convert.convert_thermal(lwir_folder_path, lwir_output_path, exiftool_path)
 
     # Read images:
     image_df = io.create_image_df(input_path, output_path)

@@ -19,6 +19,8 @@ from imgcorrect.io import (
 )
 from imgcorrect.metadata import copy_exif
 
+from imgcorrect.thermal_convert import convert_thermal
+
 __all__ = [
     "__version__",
     "adjust_scale",

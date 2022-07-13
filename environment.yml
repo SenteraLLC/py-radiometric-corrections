@@ -17,6 +17,8 @@ dependencies:
   - tifffile
   - pandas
   - tqdm
+  - imageio
+  - imagecodecs
   # subpackage dependencies
   # Sentera dependencies
   - pip:
