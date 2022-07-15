@@ -198,19 +198,23 @@ def correct_images(
 
     # Check for LWIR folder and convert images
     lwir_folder_path = None
-    input_folders = [f for f in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, f))]
+    input_folders = [
+        f for f in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, f))
+    ]
     if not input_folders:
-        if 'lwir' in os.path.split(input_path)[1].lower():
+        if "lwir" in os.path.split(input_path)[1].lower():
             lwir_folder_path = input_path
     for folder in input_folders:
-        if 'lwir' in folder.lower():
+        if "lwir" in folder.lower():
             lwir_folder_path = os.path.join(input_path, folder)
 
     if lwir_folder_path is not None:
         lwir_output_path = os.path.join(output_path, os.path.split(lwir_folder_path)[1])
         if not os.path.exists(output_path):
             os.mkdir(output_path)
-        thermal_convert.convert_thermal(lwir_folder_path, lwir_output_path, exiftool_path)
+        thermal_convert.convert_thermal(
+            lwir_folder_path, lwir_output_path, exiftool_path
+        )
 
     # Read images:
     image_df = io.create_image_df(input_path, output_path)
