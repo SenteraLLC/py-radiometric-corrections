@@ -40,16 +40,12 @@ def convert_thermal(input_path, output_path, exiftool_path):
             # copy exif and xmp data from input image to corrected image
             print("copying exif data")
             os.system(
-                '{} -overwrite_original -TagsFromFile "{}" "-xmp" "-exif" "-all"  "{}"'.format(
-                    exiftool_path, os.path.join(input_path, image), output_image_path
-                )
+                f'{exiftool_path} -overwrite_original -TagsFromFile "{os.path.join(input_path, image)}" "-xmp" "-exif" "-all"  "{output_image_path}"'
             )
 
             print("editing band info")
             os.system(
-                '{} -config "C:/Sentera_Tools/py-radiometric-corrections/cfg/exiftool.cfg" -overwrite_original "-xmp-Camera:BandName=LWIR" "-xmp-Camera:CentralWavelength=11000" "-xmp-Camera:WavelengthFWHM=6000" "{}" '.format(
-                    exiftool_path, output_image_path
-                )
+                f'{exiftool_path} -config "C:/Sentera_Tools/py-radiometric-corrections/cfg/exiftool.cfg" -overwrite_original "-xmp-Camera:BandName=LWIR" "-xmp-Camera:CentralWavelength=11000" "-xmp-Camera:WavelengthFWHM=6000" "{output_image_path}" '
             )
 
             output_files = [
@@ -63,4 +59,4 @@ def convert_thermal(input_path, output_path, exiftool_path):
                         os.remove(os.path.join(output_path, file))
                         print("additional file deleted")
                     except Exception:
-                        print("file delete failed")
+                        print(f"File delete failed with error {Exception}")
