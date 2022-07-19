@@ -13,7 +13,7 @@ def convert_thermal(input_path, output_path, exiftool_path):
     if not os.path.exists(output_path):
         os.mkdir(output_path)
 
-    images = [f for f in os.listdir(input_path) if os.path.isfile(os.path.join(input_path, f))]
+    images = [f for f in os.listdir(input_path) if os.path.isfile(os.path.join(input_path, f)) and f.endswith(".tif")]
 
     # copy image to output location
     for image in images:
