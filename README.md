@@ -25,6 +25,11 @@ Library to perform various corrections on imagery from supported sensors, includ
         
 If no errors appear, the **imgcorrect** library should be installed correctly.
 
+#### Building the Executable
+In a Windows 10 x64 environment, rebuild the executable with pyinstaller using this command:
+
+		>> pyinstaller correct_images_onefile.spec
+
 ### Usage
 The imagery correction in this repository can be used via:
 * Importing the various library functions defined in the package
