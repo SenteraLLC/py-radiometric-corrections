@@ -27,6 +27,9 @@ def copy_exif(image_df_row, exiftool_path):
         band_arr = imgparse.get_bandnames(image_df_row.image_path)
         i = int(image_df_row.XMP_index)
         command += [
+            "-xmp-Camera:BandName=",
+            "-xmp-Camera:CentralWavelength=",
+            "-xmp-Camera:WavelengthFWHM=",
             f"-xmp-Camera:BandName={band_arr[i]}",
             f"-xmp-Camera:CentralWavelength={cent_arr[i]}",
             f"-xmp-Camera:WavelengthFWHM={fwhm_arr[i]}",
