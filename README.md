@@ -31,7 +31,7 @@ The imagery correction in this repository can be used via:
 * Running the pre-defined scripts with a Python installation of version 3.6 or above
 * Running the standalone executable on the command line
 
-1) Open Anaconda Prompt and navigate to **py-radiometric-corrections/**.  Run:
+Open Anaconda Prompt and navigate to **py-radiometric-corrections/**.  Run:
 
         >> conda activate imgcorrect-venv
 Get a list of required arguments:	
@@ -47,17 +47,21 @@ Optional commands:
   
   --output_path OUTPUT_PATH, -o OUTPUT_PATH
   * Path to output folder at which the corrected images will be stored. If not supplied, corrected images will be placed into the input directory.
-  --no_ils_correct, -i  If selected, ILS correction will not be applied to the images.
+  
+  --no_ils_correct, -i 
+  * If selected, ILS correction will not be applied to the images.
+  
   --no_reflectance_correct, -r
-                        If selected, reflectance correction will not be applied to the images.
+  * If selected, reflectance correction will not be applied to the images.
+  
   --delete_original, -d
-                        Overwrite original 12-bit images with the corrected versions. If selected, corrected images
-                        are renamed to their original names. If not, an extension is added.
+  * Overwrite original 12-bit images with the corrected versions. If selected, corrected images are renamed to their original names. If not, an extension is added.
+  
   --exiftool_path EXIFTOOL_PATH, -e EXIFTOOL_PATH
-                        Path to ExifTool executable. ExifTool is required for the conversion; if not passed, the
-                        script will use a bundled ExifTool executable.
-  --uint16_output, -u   If selected, scale of output values will be adjusted to 0-65535 and dtype will be changed to
-                        uint16.
+  * Path to ExifTool executable. ExifTool is required for the conversion; if not passed, the script will use a bundled ExifTool executable.
+  
+  --uint16_output, -u   
+  * If selected, scale of output values will be adjusted to 0-65535 and dtype will be changed to uint16.
 
 #### Building the Executable
 In a Windows 10 x64 environment, rebuild the executable with pyinstaller using this command:
