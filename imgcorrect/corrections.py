@@ -2,7 +2,6 @@
 
 import logging
 import os
-import sys
 import tempfile
 
 import imgparse
@@ -176,22 +175,6 @@ def correct_images(
     # Create new `pandas` methods which use `tqdm` progress
     # (can use tqdm_gui, optional kwargs, etc.)
     tqdm.pandas()
-
-    if not exiftool_path:
-        if getattr(sys, "frozen", False):
-            # If the application is run as a bundle, the PyInstaller bootloader
-            # extends the sys module by a flag frozen=True and sets the app
-            # path into variable _MEIPASS'.
-            exiftool_path = os.path.join(sys._MEIPASS, "exiftool.exe")
-        else:
-            exiftool_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "exiftool",
-                "exiftool.exe",
-            )
-        logger.info(
-            "Using bundled executable. Setting ExifTool path to %s", exiftool_path
-        )
 
     logger.info("ILS corrections: %s", "Disabled" if no_ils_correct else "Enabled")
     logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
