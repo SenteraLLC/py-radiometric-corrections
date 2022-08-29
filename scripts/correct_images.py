@@ -2,8 +2,9 @@
 
 import argparse
 import logging
-from imgcorrect._version import __version__
+
 from imgcorrect import corrections
+from imgcorrect._version import __version__
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -72,7 +73,7 @@ if __name__ == "__main__":
         "--version",
         "-v",
         action="version",
-        version='%(prog)s v{version}'.format(version=__version__)
+        version="%(prog)s v{version}".format(version=__version__),
     )
 
     args = parser.parse_args()

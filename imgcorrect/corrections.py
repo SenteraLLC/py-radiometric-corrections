@@ -155,8 +155,10 @@ def apply_corrections(image_df_row):
 
     return image_arr
 
+
 def get_exif_tool_path():
-    exiftool_path=""
+    """Calculate the exif tool path based on whether it is running as a bundle or script."""
+    exiftool_path = ""
     if getattr(sys, "frozen", False):
         # If the application is run as a bundle, the PyInstaller bootloader
         # extends the sys module by a flag frozen=True and sets the app
@@ -168,25 +170,20 @@ def get_exif_tool_path():
             "exiftool",
             "exiftool.exe",
         )
-    logger.info(
-        "Using bundled executable. Setting ExifTool path to %s", exiftool_path
-    )
+    logger.info("Using bundled executable. Setting ExifTool path to %s", exiftool_path)
     return exiftool_path
 
+
 def get_corrections(
-        input_path,
-        calibration_id,
-        output_path,
-        no_ils_correct,
-        no_reflectance_correct
+    input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
 ):
     """
-        Radiometrically correct images.
+    Find correction coefficient for each image.
 
-        For each image in the input_path directory (recursive), determine coefficients to correct for
-        autoexposure and incidental lighting variance, and scale to mean reflectance of a calibration
-        panel with known reflectance.
-        """
+    For each image in the input_path directory (recursive), determine coefficients to correct for
+    autoexposure and incidental lighting variance, and scale to mean reflectance of a calibration
+    panel with known reflectance.
+    """
     # Create new `pandas` methods which use `tqdm` progress
     # (can use tqdm_gui, optional kwargs, etc.)
     tqdm.pandas()
@@ -231,6 +228,7 @@ def get_corrections(
 
     return image_df
 
+
 def correct_images(
     input_path,
     calibration_id,
@@ -241,7 +239,18 @@ def correct_images(
     exiftool_path,
     uint16_output,
 ):
-    image_df = get_corrections(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct)
+    """
+    Radiometrically correct images.
+
+    For each image in the input_path directory (recursive), determine coefficients to correct for
+    autoexposure and incidental lighting variance, and scale to mean reflectance of a calibration
+    panel with known reflectance.
+
+    The result is applied to each image before the iamge is re-saved.
+    """
+    image_df = get_corrections(
+        input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
+    )
     logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
 
     if not exiftool_path:

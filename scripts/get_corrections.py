@@ -3,9 +3,9 @@
 import argparse
 import logging
 import os
-from imgcorrect._version import __version__
 
 from imgcorrect import corrections, io
+from imgcorrect._version import __version__
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -51,11 +51,12 @@ if __name__ == "__main__":
         "--version",
         "-v",
         action="version",
-        version='%(prog)s v{version}'.format(version=__version__)
+        version="%(prog)s v{version}".format(version=__version__),
     )
 
     args = parser.parse_args()
 
     corrections_data = corrections.get_corrections(**vars(args))
-    io.write_corrections_csv(corrections_data, os.path.join(args.output_path, "radiometric-corrections.csv"))
-
+    io.write_corrections_csv(
+        corrections_data, os.path.join(args.output_path, "radiometric-corrections.csv")
+    )
