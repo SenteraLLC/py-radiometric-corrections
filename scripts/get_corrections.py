@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+from imgcorrect._version import __version__
 
 from imgcorrect import corrections, io
 
@@ -45,6 +46,12 @@ if __name__ == "__main__":
         "-r",
         action="store_true",
         help="If selected, radiometric-corrections.csv will not use calibration target data in the results",
+    )
+    parser.add_argument(
+        "--version",
+        "-v",
+        action="version",
+        version='%(prog)s v{version}'.format(version=__version__)
     )
 
     args = parser.parse_args()

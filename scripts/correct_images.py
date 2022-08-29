@@ -2,7 +2,7 @@
 
 import argparse
 import logging
-
+from imgcorrect._version import __version__
 from imgcorrect import corrections
 
 logging.basicConfig(level=logging.INFO)
@@ -66,6 +66,13 @@ if __name__ == "__main__":
         action="store_true",
         help="If selected, scale of output values will be adjusted to 0-65535 and dtype will be "
         "changed to uint16.",
+    )
+
+    parser.add_argument(
+        "--version",
+        "-v",
+        action="version",
+        version='%(prog)s v{version}'.format(version=__version__)
     )
 
     args = parser.parse_args()

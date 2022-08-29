@@ -241,7 +241,7 @@ def correct_images(
     exiftool_path,
     uint16_output,
 ):
-    image_df = get_corrections(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct, exiftool_path)
+    image_df = get_corrections(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct)
     logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
 
     if not exiftool_path:
