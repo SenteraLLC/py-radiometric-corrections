@@ -60,7 +60,6 @@ def apply_sensor_settings(image_df):
                     row["band"] = (
                         re.search(r"[A-Za-z]+", os.path.basename(row.image_root))
                         .group(0)
-                        .lower()
                     )
                     row["XMP_index"] = 0
                     row["reduce_xmp"] = False
