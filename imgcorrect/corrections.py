@@ -155,66 +155,43 @@ def apply_corrections(image_df_row):
 
     return image_arr
 
+def get_exif_tool_path():
+    exiftool_path=""
+    if getattr(sys, "frozen", False):
+        # If the application is run as a bundle, the PyInstaller bootloader
+        # extends the sys module by a flag frozen=True and sets the app
+        # path into variable _MEIPASS'.
+        exiftool_path = os.path.join(sys._MEIPASS, "exiftool.exe")
+    else:
+        exiftool_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "exiftool",
+            "exiftool.exe",
+        )
+    logger.info(
+        "Using bundled executable. Setting ExifTool path to %s", exiftool_path
+    )
+    return exiftool_path
 
-def correct_images(
-    input_path,
-    calibration_id,
-    output_path,
-    no_ils_correct,
-    no_reflectance_correct,
-    delete_original,
-    exiftool_path,
-    uint16_output,
+def get_corrections(
+        input_path,
+        calibration_id,
+        output_path,
+        no_ils_correct,
+        no_reflectance_correct
 ):
     """
-    Radiometrically correct images.
+        Radiometrically correct images.
 
-    For each image in the input_path directory (recursive), determine coefficients to correct for
-    autoexposure and incidental lighting variance, and scale to mean reflectance of a calibration
-    panel with known reflectance.
-    """
+        For each image in the input_path directory (recursive), determine coefficients to correct for
+        autoexposure and incidental lighting variance, and scale to mean reflectance of a calibration
+        panel with known reflectance.
+        """
     # Create new `pandas` methods which use `tqdm` progress
     # (can use tqdm_gui, optional kwargs, etc.)
     tqdm.pandas()
 
-    if not exiftool_path:
-        if getattr(sys, "frozen", False):
-            # If the application is run as a bundle, the PyInstaller bootloader
-            # extends the sys module by a flag frozen=True and sets the app
-            # path into variable _MEIPASS'.
-            exiftool_path = os.path.join(sys._MEIPASS, "exiftool.exe")
-        else:
-            exiftool_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "exiftool",
-                "exiftool.exe",
-            )
-        logger.info(
-            "Using bundled executable. Setting ExifTool path to %s", exiftool_path
-        )
-
     logger.info("ILS corrections: %s", "Disabled" if no_ils_correct else "Enabled")
-    logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
-
-    # Check for LWIR folder and convert images
-    lwir_folder_path = None
-    input_folders = [
-        f for f in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, f))
-    ]
-    if not input_folders:
-        if "lwir" in os.path.split(input_path)[1].lower():
-            lwir_folder_path = input_path
-    for folder in input_folders:
-        if "lwir" in folder.lower():
-            lwir_folder_path = os.path.join(input_path, folder)
-
-    if lwir_folder_path is not None:
-        lwir_output_path = os.path.join(output_path, os.path.split(lwir_folder_path)[1])
-        if not os.path.exists(output_path):
-            os.mkdir(output_path)
-        thermal_convert.convert_thermal(
-            lwir_folder_path, lwir_output_path, exiftool_path
-        )
 
     # Read images:
     image_df = io.create_image_df(input_path, output_path)
@@ -251,6 +228,44 @@ def correct_images(
     image_df["correction_coefficient"] = image_df.apply(
         lambda row: compute_correction_coefficient(row), axis=1
     )
+
+    return image_df
+
+def correct_images(
+    input_path,
+    calibration_id,
+    output_path,
+    no_ils_correct,
+    no_reflectance_correct,
+    delete_original,
+    exiftool_path,
+    uint16_output,
+):
+    image_df = get_corrections(input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct, exiftool_path)
+    logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
+
+    if not exiftool_path:
+        exiftool_path = get_exif_tool_path()
+
+    # Check for LWIR folder and convert images
+    lwir_folder_path = None
+    input_folders = [
+        f for f in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, f))
+    ]
+    if not input_folders:
+        if "lwir" in os.path.split(input_path)[1].lower():
+            lwir_folder_path = input_path
+    for folder in input_folders:
+        if "lwir" in folder.lower():
+            lwir_folder_path = os.path.join(input_path, folder)
+
+    if lwir_folder_path is not None:
+        lwir_output_path = os.path.join(output_path, os.path.split(lwir_folder_path)[1])
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
+        thermal_convert.convert_thermal(
+            lwir_folder_path, lwir_output_path, exiftool_path
+        )
 
     with tempfile.TemporaryDirectory() as temp_dir:
         # Apply corrections:

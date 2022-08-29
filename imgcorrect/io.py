@@ -153,6 +153,14 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     image_df_row["temp_path"] = temp_path
     return image_df_row
 
+def write_corrections_csv(image_df, file):
+    columns = ["image_path", "independent_ils", "band", "autoexposure", "ILS_ratio", "slope_coefficient", "correction_coefficient"]
+    csv_df = image_df[columns].copy()
+    base_dir = os.path.dirname(file)
+
+    # Get the path relative to the output folder
+    csv_df['image_path'] = csv_df['image_path'].apply((lambda x: os.path.relpath(x, base_dir)))
+    csv_df.to_csv(file, index=False)
 
 def get_zenith_coeffs():
     """Load reflectance panel coefficients from zenith_co.csv."""
