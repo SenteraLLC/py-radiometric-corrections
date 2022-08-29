@@ -204,7 +204,7 @@ def get_corrections(
 
     # Get autoexposure correction:
     image_df["autoexposure"] = image_df.apply(
-        lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF), axis=1
+        lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF) / 100, axis=1
     )
 
     # Split out calibration images, if present:
