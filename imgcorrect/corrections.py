@@ -246,7 +246,7 @@ def correct_images(
     autoexposure and incidental lighting variance, and scale to mean reflectance of a calibration
     panel with known reflectance.
 
-    The result is applied to each image before the iamge is re-saved.
+    The result is applied to each image before the image is re-saved.
     """
     image_df = get_corrections(
         input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
