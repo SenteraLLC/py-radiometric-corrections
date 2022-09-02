@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import shutil
+import sys
 from glob import glob
 
 import numpy as np
@@ -176,7 +177,17 @@ def write_corrections_csv(image_df, file):
 def get_zenith_coeffs():
     """Load reflectance panel coefficients from zenith_co.csv."""
     arr = np.empty(2501, dtype=float)
-    with open("zenith_co.csv", newline="") as file:
+    parent = ""
+    if getattr(sys, "frozen", False):
+        # If the application is run as a bundle, the PyInstaller bootloader
+        # extends the sys module by a flag frozen=True and sets the app
+        # path into variable _MEIPASS'.
+        parent = sys._MEIPASS
+    else:
+        parent = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    full_path = os.path.join(parent, "zenith_co.csv")
+    with open(full_path, newline="") as file:
         reader = csv.reader(file)
         for row in reader:
             arr[int(row[0])] = float(row[1]) / 100  # convert from percentages
