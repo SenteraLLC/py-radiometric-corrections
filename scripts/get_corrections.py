@@ -2,8 +2,9 @@
 
 import argparse
 import logging
+import os
 
-from imgcorrect import corrections
+from imgcorrect import corrections, io
 from imgcorrect._version import __version__
 
 logging.basicConfig(level=logging.INFO)
@@ -32,43 +33,20 @@ if __name__ == "__main__":
         "--output_path",
         "-o",
         default=None,
-        help="Path to output folder at which the corrected images will be stored. If not supplied, "
-        "corrected images will be placed into the input directory.",
+        help="Path to output the radiometric-corrections.csv to.",
     )
     parser.add_argument(
         "--no_ils_correct",
         "-i",
         action="store_true",
-        help="If selected, ILS correction will not be applied to the images.",
+        help="If selected, the radiometric-corrections.csv will have unity gains in the ils corrections column",
     )
     parser.add_argument(
         "--no_reflectance_correct",
         "-r",
         action="store_true",
-        help="If selected, reflectance correction will not be applied to the images.",
+        help="If selected, radiometric-corrections.csv will not use calibration target data in the results",
     )
-    parser.add_argument(
-        "--delete_original",
-        "-d",
-        action="store_true",
-        help="Overwrite original 12-bit images with the corrected versions. If selected, corrected "
-        "images are renamed to their original names. If not, an extension is added.",
-    )
-    parser.add_argument(
-        "--exiftool_path",
-        "-e",
-        default=None,
-        help="Path to ExifTool executable. ExifTool is required for the conversion; if not passed, "
-        "the script will use a bundled ExifTool executable.",
-    )
-    parser.add_argument(
-        "--uint16_output",
-        "-u",
-        action="store_true",
-        help="If selected, scale of output values will be adjusted to 0-65535 and dtype will be "
-        "changed to uint16.",
-    )
-
     parser.add_argument(
         "--version",
         "-v",
@@ -78,4 +56,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    corrections.correct_images(**vars(args))
+    corrections_data = corrections.get_corrections(**vars(args))
+    io.write_corrections_csv(
+        corrections_data, os.path.join(args.output_path, "radiometric-corrections.csv")
+    )

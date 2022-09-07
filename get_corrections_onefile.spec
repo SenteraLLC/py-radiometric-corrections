@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['scripts\\correct_images.py'],
+a = Analysis(['scripts\\get_corrections.py'],
              pathex=['.'],
              binaries=[],
              datas=[('exiftool/exiftool.exe', '.'), ('zenith_co.csv', '.')],
@@ -23,7 +23,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='ImageryCorrector',
+          name='GetCorrectionsCsv',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,

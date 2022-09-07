@@ -67,7 +67,7 @@ def extract_panel_bounds(image):
     if ids is not None:
         aruco_side_length_p = cv.norm(corners[0][0][1] - corners[0][0][0])
         gsd = ARUCO_SIDE_LENGTH_M / aruco_side_length_p
-        logger.debug(f"Calibration image GSD: {gsd:10.5f} m/pixel")
+        logger.debug("Calibration image GSD: %10.5f m/pixel", gsd)
 
         top_aruco_line = corners[0][0][0] - corners[0][0][3]
         top_aruco_line_middle = top_aruco_line / 2.0 + corners[0][0][3]
@@ -142,5 +142,5 @@ def get_reflectance(row):
         reflectance_pixels = image[panel.bounds()]
         mean_reflectance_digital_number = reflectance_pixels.mean()
 
-        logger.info(f"Mean DN: {mean_reflectance_digital_number:10.5}")
+        logger.info("Mean DN: %10.5f", mean_reflectance_digital_number)
         return mean_reflectance_digital_number
