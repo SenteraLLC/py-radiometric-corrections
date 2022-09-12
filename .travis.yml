@@ -8,7 +8,7 @@ install:
   - "perl Makefile.PL"
   - "sudo make install"
   - "cd .."
-  - "pip install poetry"
+  - "pip install poetry==1.1.15"
   - "poetry install"
 
 script:
