@@ -33,7 +33,7 @@ def apply_sensor_settings(image_df):
                     ignore = False
                     for key, val in s["ignore_criteria"].items():
                         if key in row["EXIF"] and val in str(row["EXIF"][key]):
-                            logger.info(f"Ignoring {row['image_path']}")
+                            logger.info("Ignoring %s", row["image_path"])
                             ignore = True
                     if ignore:
                         break
@@ -56,11 +56,9 @@ def apply_sensor_settings(image_df):
                         rows.append(band_row)
                 # otherwise, assume band is indicated in root folder name
                 else:
-                    row["band"] = (
-                        re.search(r"[A-Za-z]+", os.path.basename(row.image_root))
-                        .group(0)
-                        .lower()
-                    )
+                    row["band"] = re.search(
+                        r"[A-Za-z]+", os.path.basename(row.image_root)
+                    ).group(0)
                     row["XMP_index"] = 0
                     row["reduce_xmp"] = False
                     rows.append(row)
@@ -151,3 +149,24 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     image_df_row["max_val"] = np.max(image_arr_corrected)
     image_df_row["temp_path"] = temp_path
     return image_df_row
+
+
+def write_corrections_csv(image_df, file):
+    """Write vital correction data from the dataframe to the given csv file."""
+    columns = [
+        "image_path",
+        "independent_ils",
+        "band",
+        "autoexposure",
+        "ILS_ratio",
+        "slope_coefficient",
+        "correction_coefficient",
+    ]
+    csv_df = image_df[columns].copy()
+    base_dir = os.path.dirname(file)
+
+    # Get the path relative to the output folder
+    csv_df["image_path"] = csv_df["image_path"].apply(
+        (lambda x: os.path.relpath(x, base_dir))
+    )
+    csv_df.to_csv(file, index=False)
