@@ -10,7 +10,7 @@ import tifffile as tf
 from PIL import Image
 from tqdm import tqdm
 
-from imgcorrect import detect_panel, io, metadata, thermal_convert
+from imgcorrect import detect_panel, io, metadata, thermal_convert, zenith_co
 
 logger = logging.getLogger(__name__)
 
@@ -99,10 +99,10 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
     else:
         band_df["ils_scaling_factor"] = 1
 
-    coeffs = io.get_zenith_coeffs()
-
     band_df["slope_coefficient"] = (
-        band_df.apply(lambda row: _get_band_coeff(row, coeffs), axis=1)
+        band_df.apply(
+            lambda row: _get_band_coeff(row, zenith_co.zenith_coefficients), axis=1
+        )
         / (band_df.mean_reflectance / band_df.autoexposure)
         * band_df.ils_scaling_factor
     )
