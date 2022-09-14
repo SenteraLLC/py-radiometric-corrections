@@ -2,7 +2,6 @@
 
 import logging
 import os
-import sys
 import tempfile
 
 import imgparse
@@ -156,24 +155,6 @@ def apply_corrections(image_df_row):
     return image_arr
 
 
-def get_exif_tool_path():
-    """Calculate the exif tool path based on whether it is running as a bundle or script."""
-    exiftool_path = ""
-    if getattr(sys, "frozen", False):
-        # If the application is run as a bundle, the PyInstaller bootloader
-        # extends the sys module by a flag frozen=True and sets the app
-        # path into variable _MEIPASS'.
-        exiftool_path = os.path.join(sys._MEIPASS, "exiftool.exe")
-    else:
-        exiftool_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "exiftool",
-            "exiftool.exe",
-        )
-    logger.info("Using bundled executable. Setting ExifTool path to %s", exiftool_path)
-    return exiftool_path
-
-
 def get_corrections(
     input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
 ):
@@ -252,9 +233,6 @@ def correct_images(
         input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
     )
     logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
-
-    if not exiftool_path:
-        exiftool_path = get_exif_tool_path()
 
     # Check for LWIR folder and convert images
     lwir_folder_path = None
