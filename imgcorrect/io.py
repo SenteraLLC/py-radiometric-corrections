@@ -1,6 +1,5 @@
 """Input/output operations for Sentera imagery."""
 
-import csv
 import logging
 import os
 import re
@@ -152,13 +151,3 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     image_df_row["max_val"] = np.max(image_arr_corrected)
     image_df_row["temp_path"] = temp_path
     return image_df_row
-
-
-def get_zenith_coeffs():
-    """Load reflectance panel coefficients from zenith_co.csv."""
-    arr = np.empty(2501, dtype=float)
-    with open("zenith_co.csv", newline="") as file:
-        reader = csv.reader(file)
-        for row in reader:
-            arr[int(row[0])] = float(row[1]) / 100  # convert from percentages
-    return arr
