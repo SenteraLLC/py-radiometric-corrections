@@ -2,7 +2,6 @@
 
 import logging
 import os
-import sys
 import tempfile
 
 import imgparse
@@ -11,7 +10,7 @@ import tifffile as tf
 from PIL import Image
 from tqdm import tqdm
 
-from imgcorrect import detect_panel, io, metadata, thermal_convert
+from imgcorrect import detect_panel, io, metadata, thermal_convert, zenith_co
 
 logger = logging.getLogger(__name__)
 
@@ -100,10 +99,10 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
     else:
         band_df["ils_scaling_factor"] = 1
 
-    coeffs = io.get_zenith_coeffs()
-
     band_df["slope_coefficient"] = (
-        band_df.apply(lambda row: _get_band_coeff(row, coeffs), axis=1)
+        band_df.apply(
+            lambda row: _get_band_coeff(row, zenith_co.zenith_coefficients), axis=1
+        )
         / (band_df.mean_reflectance / band_df.autoexposure)
         * band_df.ils_scaling_factor
     )
@@ -154,24 +153,6 @@ def apply_corrections(image_df_row):
     image_arr = image_arr * image_df_row.correction_coefficient
 
     return image_arr
-
-
-def get_exif_tool_path():
-    """Calculate the exif tool path based on whether it is running as a bundle or script."""
-    exiftool_path = ""
-    if getattr(sys, "frozen", False):
-        # If the application is run as a bundle, the PyInstaller bootloader
-        # extends the sys module by a flag frozen=True and sets the app
-        # path into variable _MEIPASS'.
-        exiftool_path = os.path.join(sys._MEIPASS, "exiftool.exe")
-    else:
-        exiftool_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "exiftool",
-            "exiftool.exe",
-        )
-    logger.info("Using bundled executable. Setting ExifTool path to %s", exiftool_path)
-    return exiftool_path
 
 
 def get_corrections(
@@ -252,9 +233,6 @@ def correct_images(
         input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
     )
     logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
-
-    if not exiftool_path:
-        exiftool_path = get_exif_tool_path()
 
     # Check for LWIR folder and convert images
     lwir_folder_path = None

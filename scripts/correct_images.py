@@ -2,6 +2,8 @@
 
 import argparse
 import logging
+import os
+import sys
 
 from imgcorrect import corrections
 from imgcorrect._version import __version__
@@ -77,5 +79,21 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    if not args.exiftool_path:
+        if getattr(sys, "frozen", False):
+            # If the application is run as a bundle, the PyInstaller bootloader
+            # extends the sys module by a flag frozen=True and sets the app
+            # path into variable _MEIPASS'.
+            args.exiftool_path = os.path.join(sys._MEIPASS, "exiftool.exe")
+        else:
+            args.exiftool_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "exiftool",
+                "exiftool.exe",
+            )
+        logger.info(
+            "Using bundled executable. Setting ExifTool path to %s", args.exiftool_path
+        )
 
     corrections.correct_images(**vars(args))
