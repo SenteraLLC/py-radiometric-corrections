@@ -6,7 +6,7 @@ authors = ["Samuel Williams <sam.williams@sentera.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-Pillow = "^9.0.1"
+Pillow = "^9.3.0"
 numpy = "^1.19.3"
 tifffile = "^2021.3.16"
 pandas = "^1.2.3"
