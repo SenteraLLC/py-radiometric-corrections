@@ -58,7 +58,11 @@ def compute_ils_correction(image_df):
 def compute_reflectance_correction(image_df, calibration_df, ils_present):
     """Compute coefficient that will scale output values to known panel reflectance."""
 
-    def _get_band_coeff(row, coeffs):
+    def _get_band_coeff(row):
+        if row["aruco_id"] == 23:
+            coeffs = zenith_co.sg3144_1_coefficients
+        elif row["aruco_id"] == 63:
+            coeffs = zenith_co.sg3144_2_coefficients
         cent_arr, fwhm_arr = imgparse.get_wavelength_data(row.image_path)
         cent = int(cent_arr[int(row.XMP_index)])
         wfhm = int(fwhm_arr[int(row.XMP_index)])
@@ -77,15 +81,21 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         )
 
     # only calculate mean reflectance if it was not calculated previously to find calibration images
-    calibration_df["mean_reflectance"] = calibration_df.apply(
+    panel_info = calibration_df.apply(
         lambda row: detect_panel.get_reflectance(row)
         if row.cal_in_path
         else row.mean_reflectance,
         axis=1,
     )
+    mean_reflectance, aruco_id = [], []
+    for row in panel_info:
+        if row is not None:
+            mean_reflectance.append(row[0]), aruco_id.append(row[1])
+    calibration_df["mean_reflectance"] = mean_reflectance
+    calibration_df["aruco_id"] = aruco_id
     band_df = (
         calibration_df.groupby("band")[
-            ["image_path", "mean_reflectance", "autoexposure", "XMP_index"]
+            ["image_path", "mean_reflectance", "aruco_id", "autoexposure", "XMP_index"]
         ]
         .apply(take_closest_image)
         .reset_index()
@@ -101,7 +111,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
 
     band_df["slope_coefficient"] = (
         band_df.apply(
-            lambda row: _get_band_coeff(row, zenith_co.zenith_coefficients), axis=1
+            lambda row: _get_band_coeff(row), axis=1
         )
         / (band_df.mean_reflectance / band_df.autoexposure)
         * band_df.ils_scaling_factor
