@@ -63,6 +63,10 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
             coeffs = zenith_co.sg3144_1_coefficients
         elif row["aruco_id"] == 63:
             coeffs = zenith_co.sg3144_2_coefficients
+        else:
+            raise Exception("The detected aruco marker id is not supported.")
+
+        logger.debug("Detected aruco marker id: %s", {row["aruco_id"]})
         cent_arr, fwhm_arr = imgparse.get_wavelength_data(row.image_path)
         cent = int(cent_arr[int(row.XMP_index)])
         wfhm = int(fwhm_arr[int(row.XMP_index)])
@@ -110,9 +114,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         band_df["ils_scaling_factor"] = 1
 
     band_df["slope_coefficient"] = (
-        band_df.apply(
-            lambda row: _get_band_coeff(row), axis=1
-        )
+        band_df.apply(lambda row: _get_band_coeff(row), axis=1)
         / (band_df.mean_reflectance / band_df.autoexposure)
         * band_df.ils_scaling_factor
     )
