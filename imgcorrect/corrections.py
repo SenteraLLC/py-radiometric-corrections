@@ -60,9 +60,9 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
 
     def _get_band_coeff(row):
         if row["aruco_id"] == 23:
-            coeffs = zenith_co.sg3144_1_coefficients
+            coeffs = zenith_co.sg3144_batch1_coefficients
         elif row["aruco_id"] == 63:
-            coeffs = zenith_co.sg3144_2_coefficients
+            coeffs = zenith_co.sg3144_batch2_coefficients
         else:
             raise Exception("The detected aruco marker id is not supported.")
 
