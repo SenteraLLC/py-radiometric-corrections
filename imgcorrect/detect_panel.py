@@ -93,7 +93,9 @@ def extract_panel_bounds(image):
             int(top_left[0] + SAMPLE_RECT_WIDTH / gsd),
             int(top_left[1] + SAMPLE_RECT_HEIGHT / gsd),
         )
-        return BoundingBox(top_left=top_left, bottom_right=bottom_right, aruco_id=ids[0][0])
+        return BoundingBox(
+            top_left=top_left, bottom_right=bottom_right, aruco_id=ids[0][0]
+        )
     else:
         return None
 
