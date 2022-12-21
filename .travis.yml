@@ -2,9 +2,9 @@ language: python
 python: 3.8
 
 install:
-  - "wget https://exiftool.org/Image-ExifTool-12.40.tar.gz"
-  - "gzip -dc Image-ExifTool-12.40.tar.gz | tar -xf -"
-  - "cd Image-ExifTool-12.40"
+  - "wget https://exiftool.org/Image-ExifTool-12.52.tar.gz"
+  - "gzip -dc Image-ExifTool-12.52.tar.gz | tar -xf -"
+  - "cd Image-ExifTool-12.52"
   - "perl Makefile.PL"
   - "sudo make install"
   - "cd .."

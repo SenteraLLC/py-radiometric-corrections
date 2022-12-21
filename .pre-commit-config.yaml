@@ -4,19 +4,19 @@ repos:
   hooks:
     - id: seed-isort-config
 - repo: https://github.com/pre-commit/mirrors-isort
-  rev: v5.4.2
+  rev: v5.10.1
   hooks:
     - id: isort
       args: ["--profile", "black"]
 - repo: https://github.com/ambv/black
-  rev: '22.3.0'
+  rev: 22.12.0
   hooks:
     - id: black
-- repo: https://gitlab.com/pycqa/flake8
-  rev: '3.8.3'
+- repo: https://github.com/pycqa/flake8
+  rev: '6.0.0'
   hooks:
     - id: flake8
-      exclude: (tests|doc)
+      exclude: (test|doc|scripts)
       additional_dependencies: [
           'flake8-docstrings',
           'flake8-builtins',
@@ -27,4 +27,3 @@ repos:
       ]
 default_language_version:
     python: python3
-    

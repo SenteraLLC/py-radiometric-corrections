@@ -24,6 +24,7 @@ class BoundingBox(NamedTuple):
 
     top_left: Tuple[int, int]
     bottom_right: Tuple[int, int]
+    aruco_id: int
 
     def bounds(self):
         """Return a sequence of slice objects that allow for use of the bounding box in NumPy indexing expressions."""
@@ -92,7 +93,9 @@ def extract_panel_bounds(image):
             int(top_left[0] + SAMPLE_RECT_WIDTH / gsd),
             int(top_left[1] + SAMPLE_RECT_HEIGHT / gsd),
         )
-        return BoundingBox(top_left=top_left, bottom_right=bottom_right)
+        return BoundingBox(
+            top_left=top_left, bottom_right=bottom_right, aruco_id=ids[0][0]
+        )
     else:
         return None
 
@@ -137,10 +140,10 @@ def get_reflectance(row):
 
     if panel is None:
         logger.info("No reflectance panel found. Mean DN: NaN")
-        return np.nan
+        return np.nan, np.nan
     else:
         reflectance_pixels = image[panel.bounds()]
         mean_reflectance_digital_number = reflectance_pixels.mean()
 
         logger.info("Mean DN: %10.5f", mean_reflectance_digital_number)
-        return mean_reflectance_digital_number
+        return mean_reflectance_digital_number, panel.aruco_id
