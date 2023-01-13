@@ -92,7 +92,7 @@ def create_image_df(input_path, output_path):
 def reflectance_if_panel(row):
     """If reflectance panel images are not identifiable by filename, try computing panel reflectance for all images."""
     if not row["cal_in_path"]:
-        row["mean_reflectance"] = detect_panel.get_reflectance(row)
+        row["mean_reflectance"], row["aruco_id"] = detect_panel.get_reflectance(row)
     return row
 
 

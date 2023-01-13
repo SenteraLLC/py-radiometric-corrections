@@ -88,7 +88,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
     panel_info = calibration_df.apply(
         lambda row: detect_panel.get_reflectance(row)
         if row.cal_in_path
-        else row.mean_reflectance,
+        else (row.mean_reflectance, row.aruco_id),
         axis=1,
     )
     mean_reflectance, aruco_id = [], []
