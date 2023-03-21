@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "imgcorrect"
-version = "1.6.2"
+version = "1.6.3"
 description = "Library to perform various corrections on imagery from supported sensors"
 authors = ["Samuel Williams <sam.williams@sentera.com>"]
 
