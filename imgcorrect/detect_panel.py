@@ -70,8 +70,16 @@ def extract_panel_bounds(image):
         gsd = ARUCO_SIDE_LENGTH_M / aruco_side_length_p
         logger.debug("Calibration image GSD: %10.5f m/pixel", gsd)
 
+        # by default, expects panel to left of aruco marker
         top_aruco_line = corners[0][0][0] - corners[0][0][3]
         top_aruco_line_middle = top_aruco_line / 2.0 + corners[0][0][3]
+
+        # panels with markers of id:63 are incorrectly oriented
+        # in this case, panel is beneath marker
+        if ids[0][0] == 63:
+            logger.info("Aruco ID: 63 detected. Adjusting for panel beneath marker.")
+            top_aruco_line = corners[0][0][3] - corners[0][0][2]
+            top_aruco_line_middle = top_aruco_line / 2.0 + corners[0][0][2]
 
         top_aruco_line_normal = np.array([top_aruco_line[1], -top_aruco_line[0]])
 
