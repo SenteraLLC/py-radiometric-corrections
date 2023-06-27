@@ -107,6 +107,7 @@ def create_cal_df(image_df, calibration_id):
     """Build calibration image dataframe."""
     image_df = image_df.apply(reflectance_if_panel, axis=1)
     is_cal_image = image_df.apply(lambda row: detect_cal(row, calibration_id), axis=1)
+
     return image_df.loc[is_cal_image], image_df.loc[~is_cal_image]
 
 
