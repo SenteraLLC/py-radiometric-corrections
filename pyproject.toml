@@ -8,7 +8,7 @@ authors = ["Samuel Williams <sam.williams@sentera.com>"]
 python = "^3.8"
 Pillow = "^9.0.1"
 numpy = "^1.19.3"
-tifffile = "^2021.3.16"
+tifffile = "^2022.3.25"
 pandas = "^1.2.3"
 tqdm = "^4.59.0"
 opencv-contrib-python = ">=4.5.1,<4.7.0"

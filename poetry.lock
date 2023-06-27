@@ -727,21 +727,21 @@ files = [
 
 [[package]]
 name = "tifffile"
-version = "2021.11.2"
+version = "2022.10.10"
 description = "Read and write TIFF files"
 category = "main"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "tifffile-2021.11.2-py3-none-any.whl", hash = "sha256:2e0066f90e2dbeb3e6a287cfd78bafbd2f142fabbca4a76a8ff809573baf5ad5"},
-    {file = "tifffile-2021.11.2.tar.gz", hash = "sha256:153e31fa1d892f482fabb2ae9f2561fa429ee42d01a6f67e58cee13637d9285b"},
+    {file = "tifffile-2022.10.10-py3-none-any.whl", hash = "sha256:87f3aee8a0d06b74655269a105de75c1958a24653e1930d523eb516100043503"},
+    {file = "tifffile-2022.10.10.tar.gz", hash = "sha256:50b61ba943b866d191295bc38a00191c9fdab23ece063544c7f1a264e3f6aa8e"},
 ]
 
 [package.dependencies]
-numpy = ">=1.15.1"
+numpy = ">=1.19.2"
 
 [package.extras]
-all = ["imagecodecs (>=2021.7.30)", "lxml", "matplotlib (>=3.2)"]
+all = ["fsspec", "imagecodecs (>=2022.2.22)", "lxml", "matplotlib (>=3.3)", "zarr"]
 
 [[package]]
 name = "tomli"
@@ -830,4 +830,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "3c2fc548a27f1aac0b01d19a0016e3c8a69aacc8dac4a9779c85e6c91e8b3ddb"
+content-hash = "b8953236195f20ea180761fbdc99cc7da9591018aa9fe3d381e4a6fb4295a7cd"
