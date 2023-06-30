@@ -8,7 +8,9 @@ install:
   - "perl Makefile.PL"
   - "sudo make install"
   - "cd .."
-  - "pip install poetry==1.1.15"
+  - 'curl -sSL https://install.python-poetry.org | python3 -'
+  - 'export PATH="/root/.local/bin:$PATH"'
+  - 'poetry self update 1.4.0'
   - 'pip install "urllib3>=1.0.0,<2.0.0"'
   - "poetry install"
 
