@@ -9,9 +9,7 @@ install:
   - "sudo make install"
   - "cd .."
   - 'curl -sSL https://install.python-poetry.org | python3 -'
-  - 'export PATH="/root/.local/bin:$PATH"'
   - 'poetry self update 1.4.0'
-  - 'pip install "urllib3>=1.0.0,<2.0.0"'
   - "poetry install"
 
 script:
