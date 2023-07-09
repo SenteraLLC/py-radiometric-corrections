@@ -88,7 +88,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
     calibration_sets = calibration_df.groupby(group_ids)
 
     # Narrow down calibration_df to just one calibration set
-    if ils_present:
+    try:
         band_avg_ils = image_df.groupby("band").ILS.mean().reset_index()
         min_diff = None
         min_diff_id = None
@@ -100,7 +100,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
                 min_diff_id = id
 
         calibration_df = calibration_sets.get_group(min_diff_id)
-    else:
+    except:
         calibration_df = calibration_sets.get_group(0)
     
     band_df = (
