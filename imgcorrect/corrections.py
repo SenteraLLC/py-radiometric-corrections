@@ -26,6 +26,7 @@ def take_closest_image(df_grouped_by_band, target=2048):
 
 def compute_ils_correction(image_df):
     """Compute coefficient that will counteract incidental lighting variation."""
+
     def _rolling_avg(df):
         return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed="both").mean()
 
@@ -84,7 +85,11 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
 
     # Split calibration images into groups wherever 10+ seconds pass between timestamps
     from datetime import timedelta
-    group_ids = (calibration_df["timestamp"] > (calibration_df["timestamp"].shift() + timedelta(seconds=10))).cumsum()
+
+    group_ids = (
+        calibration_df["timestamp"]
+        > (calibration_df["timestamp"].shift() + timedelta(seconds=10))
+    ).cumsum()
     calibration_sets = calibration_df.groupby(group_ids)
 
     # Narrow down calibration_df to just one calibration set
@@ -92,17 +97,17 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         band_avg_ils = image_df.groupby("band").ILS.mean().reset_index()
         min_diff = None
         min_diff_id = None
-        for id, cal_set in calibration_sets:
+        for set_id, cal_set in calibration_sets:
             set_avg_ils = cal_set.groupby("band").ILS.mean().reset_index()
             diff = (band_avg_ils["ILS"] - set_avg_ils["ILS"]).abs().sum()
             if min_diff is None or diff < min_diff:
                 min_diff = diff
-                min_diff_id = id
+                min_diff_id = set_id
 
         calibration_df = calibration_sets.get_group(min_diff_id)
-    except:
+    except Exception:
         calibration_df = calibration_sets.get_group(0)
-    
+
     band_df = (
         calibration_df.groupby("band")[
             ["image_path", "mean_reflectance", "aruco_id", "autoexposure", "XMP_index"]
@@ -212,13 +217,16 @@ def get_corrections(
     # Get ILS if present
     if not no_ils_correct:
         try:
+
             def _get_ils(row):
                 return imgparse.get_ils(row.image_path)[0]
+
             image_df["ILS"] = image_df.apply(_get_ils, axis=1)
         except imgparse.ParsingError:
-            logger.warning("ILS metadata could not be found. Running without ILS corrections.")
+            logger.warning(
+                "ILS metadata could not be found. Running without ILS corrections."
+            )
             no_ils_correct = True
-
 
     # Split out calibration images, if present:
     if not no_reflectance_correct:
