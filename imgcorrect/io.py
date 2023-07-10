@@ -32,7 +32,9 @@ def apply_sensor_settings(image_df):
                 if "ignore_criteria" in s:
                     ignore = False
                     for key, val in s["ignore_criteria"].items():
-                        if key in row["EXIF"] and val in str(row["EXIF"][key]):
+                        if not isinstance(val, list):
+                            val = [val]
+                        if key in row["EXIF"] and any([v in str(row["EXIF"][key]) for v in val]):
                             logger.info("Ignoring %s", row["image_path"])
                             ignore = True
                     if ignore:

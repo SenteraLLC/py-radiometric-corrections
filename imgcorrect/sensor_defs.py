@@ -103,7 +103,10 @@ sensor_defs = [
     },
     {
         "criteria": {"Image Make": "Sentera", "Image Model": "21216"},
-        "ignore_criteria": {"Image Model": "82KP"},  # LWIR
+        "ignore_criteria": {"Image Model": [
+            "82KP", # LWIR
+            "20MP-ERS", #RGB
+        ]},  
         "settings": {
             "sensor": "6x_thermal",
             "cal_in_path": True,
