@@ -91,6 +91,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         > (calibration_df["timestamp"].shift() + timedelta(seconds=10))
     ).cumsum()
     calibration_sets = calibration_df.groupby(group_ids)
+    calibration_sets["selected"] = False
 
     # Narrow down calibration_df to just one calibration set
     try:
@@ -104,8 +105,10 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
                 min_diff = diff
                 min_diff_id = set_id
 
+        calibration_sets[min_diff_id]["selected"] = True
         calibration_df = calibration_sets.get_group(min_diff_id)
     except Exception:
+        calibration_sets[0]["selected"] = True
         calibration_df = calibration_sets.get_group(0)
 
     band_df = (
