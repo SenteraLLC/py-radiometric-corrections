@@ -275,7 +275,7 @@ def correct_images(
 
     The result is applied to each image before the image is re-saved.
     """
-    image_df, calibration_sets = get_corrections(
+    image_df, calibration_sets, selected_set_id = get_corrections(
         input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
     )
     logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
@@ -330,4 +330,4 @@ def correct_images(
         # Move output imagery to correct output directory:
         io.move_corrected_images(image_df)
 
-    return image_df, calibration_sets
+    return image_df, calibration_sets, selected_set_id
