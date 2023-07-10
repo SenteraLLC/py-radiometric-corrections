@@ -90,8 +90,8 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         calibration_df["timestamp"]
         > (calibration_df["timestamp"].shift() + timedelta(seconds=10))
     ).cumsum()
+    calibration_df["selected"] = False
     calibration_sets = calibration_df.groupby(group_ids)
-    calibration_sets["selected"] = False
 
     # Narrow down calibration_df to just one calibration set
     try:
