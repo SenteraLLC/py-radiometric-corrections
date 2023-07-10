@@ -49,7 +49,9 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         elif row["aruco_id"] == 63:
             coeffs = zenith_co.sg3144_batch2_coefficients
         else:
-            raise Exception(f"The detected aruco marker id {row['aruco_id']} is not supported.")
+            raise Exception(
+                f"The detected aruco marker id {row['aruco_id']} is not supported. band: {row['band']}"
+            )
 
         logger.debug("Detected aruco marker id: %s", {row["aruco_id"]})
         cent_arr, fwhm_arr = imgparse.get_wavelength_data(row.image_path)
