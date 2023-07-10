@@ -90,7 +90,6 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         calibration_df["timestamp"]
         > (calibration_df["timestamp"].shift() + timedelta(seconds=10))
     ).cumsum()
-    calibration_df["selected"] = False
     calibration_sets = calibration_df.groupby(group_ids)
 
     # Narrow down calibration_df to just one calibration set
@@ -105,11 +104,11 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
                 min_diff = diff
                 min_diff_id = set_id
 
-        calibration_sets[min_diff_id]["selected"] = True
-        calibration_df = calibration_sets.get_group(min_diff_id)
+        selected_group_id = min_diff_id
     except Exception:
-        calibration_sets[0]["selected"] = True
-        calibration_df = calibration_sets.get_group(0)
+        selected_group_id = 0
+
+    calibration_df = calibration_sets.get_group(selected_group_id)
 
     band_df = (
         calibration_df.groupby("band")[
@@ -141,7 +140,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
             "Calibration imagery with a visible reference panel was not found for one or more bands."
         )
 
-    return image_df, calibration_sets
+    return image_df, calibration_sets, selected_group_id
 
 
 def compute_correction_coefficient(image_df_row):
@@ -244,7 +243,7 @@ def get_corrections(
     # Get reflectance correction:
     calibration_sets = None
     if not no_reflectance_correct:
-        image_df, calibration_sets = compute_reflectance_correction(
+        image_df, calibration_sets, selected_group_id = compute_reflectance_correction(
             image_df, calibration_df, not no_ils_correct
         )
     else:
@@ -254,7 +253,7 @@ def get_corrections(
         lambda row: compute_correction_coefficient(row), axis=1
     )
 
-    return image_df, calibration_sets
+    return image_df, calibration_sets, selected_group_id
 
 
 def correct_images(
