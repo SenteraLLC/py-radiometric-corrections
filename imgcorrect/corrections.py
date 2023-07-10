@@ -242,6 +242,7 @@ def get_corrections(
 
     # Get reflectance correction:
     calibration_sets = None
+    selected_group_id = None
     if not no_reflectance_correct:
         image_df, calibration_sets, selected_group_id = compute_reflectance_correction(
             image_df, calibration_df, not no_ils_correct
