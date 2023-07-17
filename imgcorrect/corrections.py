@@ -291,12 +291,16 @@ def correct_images(
     if not input_folders:
         if "lwir" in os.path.split(input_path)[1].lower():
             lwir_folder_path = input_path
+            logger.info(f"lwir in {os.path.split(input_path)[1].lower()}")
     for folder in input_folders:
         if "lwir" in folder.lower():
+            logger.info(f"lwir in {folder.lower()}")
             lwir_folder_path = os.path.join(input_path, folder)
 
     if lwir_folder_path is not None:
+        logger.info(f"lwir_folder_path: {lwir_folder_path}")
         lwir_output_path = os.path.join(output_path, os.path.split(lwir_folder_path)[1])
+        logger.info(f"lwir_output_path: {lwir_output_path}")
         if not os.path.exists(output_path):
             os.mkdir(output_path)
         thermal_convert.convert_thermal(
