@@ -218,15 +218,14 @@ def get_corrections(
     )
     image_df = image_df.set_index("timestamp", drop=False).sort_index()
 
-    # Get ILS if present
-    if not no_ils_correct:
-        try:
+    # Attempt to parse ILS metadata
+    try:
+        def _get_ils(row):
+            return imgparse.get_ils(row.image_path)[0]
 
-            def _get_ils(row):
-                return imgparse.get_ils(row.image_path)[0]
-
-            image_df["ILS"] = image_df.apply(_get_ils, axis=1)
-        except imgparse.ParsingError:
+        image_df["ILS"] = image_df.apply(_get_ils, axis=1)
+    except imgparse.ParsingError:
+        if not no_ils_correct:
             logger.warning(
                 "ILS metadata could not be found. Running without ILS corrections."
             )
