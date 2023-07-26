@@ -27,7 +27,8 @@ def convert_thermal(input_path, output_path, exiftool_path):
         if "CAL" not in image:
             output_image_path = os.path.join(output_path, image)
             logger.info("output_path: {}".format(output_image_path))
-            shutil.copy(os.path.join(input_path, image), output_image_path)
+            if input_path != output_path:
+                shutil.copy(os.path.join(input_path, image), output_image_path)
 
             # open image in output folder and get image pixel data
             image_io_reader = imageio.get_reader(output_image_path, format="tif")
