@@ -32,7 +32,11 @@ def apply_sensor_settings(image_df):
                 if "ignore_criteria" in s:
                     ignore = False
                     for key, val in s["ignore_criteria"].items():
-                        if key in row["EXIF"] and val in str(row["EXIF"][key]):
+                        if not isinstance(val, list):
+                            val = [val]
+                        if key in row["EXIF"] and any(
+                            [v in str(row["EXIF"][key]) for v in val]
+                        ):
                             logger.info("Ignoring %s", row["image_path"])
                             ignore = True
                     if ignore:
@@ -107,6 +111,7 @@ def create_cal_df(image_df, calibration_id):
     """Build calibration image dataframe."""
     image_df = image_df.apply(reflectance_if_panel, axis=1)
     is_cal_image = image_df.apply(lambda row: detect_cal(row, calibration_id), axis=1)
+
     return image_df.loc[is_cal_image], image_df.loc[~is_cal_image]
 
 

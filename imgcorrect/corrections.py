@@ -30,21 +30,6 @@ def compute_ils_correction(image_df):
     def _rolling_avg(df):
         return df.astype(float).rolling(ROLLING_AVG_TIMESPAN, closed="both").mean()
 
-    def _get_ils(row):
-        return imgparse.get_ils(row.image_path)[0]
-
-    try:
-        image_df["ILS"] = image_df.apply(_get_ils, axis=1)
-    except imgparse.ParsingError:
-        raise Exception(
-            "ILS data not found. Use --no-ils-correct flag to run corrections without ILS normalization."
-        )
-
-    image_df["timestamp"] = image_df.apply(
-        lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1
-    )
-    image_df = image_df.set_index("timestamp", drop=True).sort_index()
-
     image_df["averaged_ILS"] = image_df.groupby("band").ILS.transform(_rolling_avg)
 
     image_df["ILS_ratio"] = image_df.groupby("band").averaged_ILS.transform(
@@ -52,7 +37,7 @@ def compute_ils_correction(image_df):
     )
 
     # NOTE: We keep the 'ILS' column here to use it to scale the reflectance correction later.
-    return image_df.reset_index().drop(columns=["timestamp", "averaged_ILS"])
+    return image_df.drop(columns=["averaged_ILS"])
 
 
 def compute_reflectance_correction(image_df, calibration_df, ils_present):
@@ -64,7 +49,9 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         elif row["aruco_id"] == 63:
             coeffs = zenith_co.sg3144_batch2_coefficients
         else:
-            raise Exception("The detected aruco marker id is not supported.")
+            raise Exception(
+                f"The detected aruco marker id {row['aruco_id']} is not supported. band: {row['band']}"
+            )
 
         logger.debug("Detected aruco marker id: %s", {row["aruco_id"]})
         cent_arr, fwhm_arr = imgparse.get_wavelength_data(row.image_path)
@@ -97,6 +84,34 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
             mean_reflectance.append(row[0]), aruco_id.append(row[1])
     calibration_df["mean_reflectance"] = mean_reflectance
     calibration_df["aruco_id"] = aruco_id
+
+    # Split calibration images into groups wherever 10+ seconds pass between timestamps
+    from datetime import timedelta
+
+    group_ids = (
+        calibration_df["timestamp"]
+        > (calibration_df["timestamp"].shift() + timedelta(seconds=10))
+    ).cumsum()
+    calibration_sets = calibration_df.groupby(group_ids)
+
+    # Narrow down calibration_df to just one calibration set
+    try:
+        band_avg_ils = image_df.groupby("band").ILS.mean().reset_index()
+        min_diff = None
+        min_diff_id = None
+        for set_id, cal_set in calibration_sets:
+            set_avg_ils = cal_set.groupby("band").ILS.mean().reset_index()
+            diff = (band_avg_ils["ILS"] - set_avg_ils["ILS"]).abs().sum()
+            if min_diff is None or diff < min_diff:
+                min_diff = diff
+                min_diff_id = set_id
+
+        selected_group_id = min_diff_id
+    except Exception:
+        selected_group_id = 0
+
+    calibration_df = calibration_sets.get_group(selected_group_id)
+
     band_df = (
         calibration_df.groupby("band")[
             ["image_path", "mean_reflectance", "aruco_id", "autoexposure", "XMP_index"]
@@ -127,7 +142,7 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
             "Calibration imagery with a visible reference panel was not found for one or more bands."
         )
 
-    return image_df
+    return image_df, calibration_sets, selected_group_id
 
 
 def compute_correction_coefficient(image_df_row):
@@ -197,6 +212,26 @@ def get_corrections(
         lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF) / 100, axis=1
     )
 
+    # Get and sort by timestamp
+    image_df["timestamp"] = image_df.apply(
+        lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1
+    )
+    image_df = image_df.set_index("timestamp", drop=False).sort_index()
+
+    # Attempt to parse ILS metadata
+    try:
+
+        def _get_ils(row):
+            return imgparse.get_ils(row.image_path)[0]
+
+        image_df["ILS"] = image_df.apply(_get_ils, axis=1)
+    except imgparse.ParsingError:
+        if not no_ils_correct:
+            logger.warning(
+                "ILS metadata could not be found. Running without ILS corrections."
+            )
+            no_ils_correct = True
+
     # Split out calibration images, if present:
     if not no_reflectance_correct:
         calibration_df, image_df = io.create_cal_df(image_df, calibration_id)
@@ -208,8 +243,10 @@ def get_corrections(
         image_df["ILS_ratio"] = 1
 
     # Get reflectance correction:
+    calibration_sets = None
+    selected_group_id = None
     if not no_reflectance_correct:
-        image_df = compute_reflectance_correction(
+        image_df, calibration_sets, selected_group_id = compute_reflectance_correction(
             image_df, calibration_df, not no_ils_correct
         )
     else:
@@ -219,7 +256,7 @@ def get_corrections(
         lambda row: compute_correction_coefficient(row), axis=1
     )
 
-    return image_df
+    return image_df, calibration_sets, selected_group_id
 
 
 def correct_images(
@@ -241,7 +278,7 @@ def correct_images(
 
     The result is applied to each image before the image is re-saved.
     """
-    image_df = get_corrections(
+    image_df, calibration_sets, selected_set_id = get_corrections(
         input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
     )
     logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
@@ -295,3 +332,5 @@ def correct_images(
 
         # Move output imagery to correct output directory:
         io.move_corrected_images(image_df)
+
+    return image_df, calibration_sets, selected_set_id
