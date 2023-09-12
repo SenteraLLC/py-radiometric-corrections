@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import tifffile as tf
 
+import imgparse
 from imgcorrect import detect_panel
 from imgcorrect.sensor_defs import sensor_defs
 
@@ -19,8 +20,7 @@ logger = logging.getLogger(__name__)
 def apply_sensor_settings(image_df):
     """Rebuild image dataframe with settings based on sensor model."""
     rows = []
-
-    for index, row in image_df.iterrows():
+    for _, row in image_df.iterrows():
         for s in sensor_defs:
             # verify image metadata matches that of a supported sensor
             meets_criteria = True
@@ -58,11 +58,9 @@ def apply_sensor_settings(image_df):
                             row.output_path, band[0]
                         ).replace(".jpg", ".tif")
                         rows.append(band_row)
-                # otherwise, assume band is indicated in root folder name
+                # otherwise, extract bandname from image metadata
                 else:
-                    row["band"] = re.search(
-                        r"[A-Za-z]+", os.path.basename(row.image_root)
-                    ).group(0)
+                    row["band"] = imgparse.get_bandnames(row.image_path)[0]
                     row["XMP_index"] = 0
                     row["reduce_xmp"] = False
                     rows.append(row)
