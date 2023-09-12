@@ -208,22 +208,25 @@ def get_corrections(
     image_df = io.apply_sensor_settings(image_df)
 
     # Get autoexposure correction:
-    image_df["autoexposure"] = image_df.apply(
+    print("Getting autoexposure")
+    image_df["autoexposure"] = image_df.progress_apply(
         lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF) / 100, axis=1
     )
 
     # Get and sort by timestamp
-    image_df["timestamp"] = image_df.apply(
+    print("Getting timestamps")
+    image_df["timestamp"] = image_df.progress_apply(
         lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1
     )
     image_df = image_df.set_index("timestamp", drop=False).sort_index()
 
     # Attempt to parse ILS metadata
+    print("Getting ILS")
     try:
         def _get_ils(row):
             return imgparse.get_ils(row.image_path)[0]
 
-        image_df["ILS"] = image_df.apply(_get_ils, axis=1)
+        image_df["ILS"] = image_df.progress_apply(_get_ils, axis=1)
     except imgparse.ParsingError:
         if not no_ils_correct:
             logger.warning(
