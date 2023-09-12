@@ -57,20 +57,32 @@ def apply_sensor_settings(image_df):
                         band_row["output_path"] = add_band_to_path(
                             row.output_path, band[0]
                         ).replace(".jpg", ".tif")
+                        band_row["ID"] = re.findall('(IMG|CAL)_(\d+)', os.path.basename(row.image_path))[0]
                         rows.append(band_row)
                 # otherwise, extract bandname from image metadata
                 else:
                     row["band"] = imgparse.get_bandnames(row.image_path)[0]
                     row["XMP_index"] = 0
                     row["reduce_xmp"] = False
+                    row["ID"] = re.findall('(IMG|CAL)_(\d+)', os.path.basename(row.image_path))[0]
                     rows.append(row)
 
                 break
         else:
             logger.error("Sensor not supported")
             raise Exception("Sensor not supported")
+        
+    new_image_df = pd.DataFrame(rows)
+    images_before_filtering = len(new_image_df.index)
+    band_count = len(new_image_df["band"].unique())
+    # number of occurences of each ID
+    v = new_image_df.ID.value_counts()
+    print(band_count)
+    # remove images that don't appear in every band
+    new_image_df = new_image_df[new_image_df.ID.isin(v.index[v.eq(band_count)])]
+    print(f"Skipping {images_before_filtering - len(new_image_df.index)} images because they don't have data for all bands")
 
-    return pd.DataFrame(rows)
+    return new_image_df
 
 
 def create_image_df(input_path, output_path):

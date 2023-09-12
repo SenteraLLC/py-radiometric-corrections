@@ -220,7 +220,6 @@ def get_corrections(
 
     # Attempt to parse ILS metadata
     try:
-
         def _get_ils(row):
             return imgparse.get_ils(row.image_path)[0]
 
