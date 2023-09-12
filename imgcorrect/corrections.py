@@ -233,10 +233,12 @@ def get_corrections(
 
     # Split out calibration images, if present:
     if not no_reflectance_correct:
+        print("Creating calibration dataframe")
         calibration_df, image_df = io.create_cal_df(image_df, calibration_id)
 
     # Get ILS correction:
     if not no_ils_correct:
+        print("Computing ILS correction")
         image_df = compute_ils_correction(image_df)
     else:
         image_df["ILS_ratio"] = 1
@@ -245,13 +247,14 @@ def get_corrections(
     calibration_sets = None
     selected_group_id = None
     if not no_reflectance_correct:
+        print("Computing reflectance correction")
         image_df, calibration_sets, selected_group_id = compute_reflectance_correction(
             image_df, calibration_df, not no_ils_correct
         )
     else:
         image_df["slope_coefficient"] = 1
 
-    image_df["correction_coefficient"] = image_df.apply(
+    image_df["correction_coefficient"] = image_df.progress_apply(
         lambda row: compute_correction_coefficient(row), axis=1
     )
 
