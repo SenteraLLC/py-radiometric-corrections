@@ -7,6 +7,7 @@ import tempfile
 import imgparse
 import numpy as np
 import tifffile as tf
+from datetime import datetime
 from PIL import Image
 from tqdm import tqdm
 
@@ -215,9 +216,11 @@ def get_corrections(
 
     # Get and sort by timestamp
     print("Getting timestamps")
-    image_df["timestamp"] = image_df.progress_apply(
-        lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1
-    )
+    def _get_timestamp(exif):
+        return datetime.strptime(
+            exif["EXIF DateTimeOriginal"].values, "%Y:%m:%d %H:%M:%S"
+        )
+    image_df["timestamp"] = image_df.EXIF.apply(_get_timestamp)
     image_df = image_df.set_index("timestamp", drop=False).sort_index()
 
     # Attempt to parse ILS metadata
