@@ -36,7 +36,7 @@ def convert_thermal(input_path, output_path, exiftool_path):
                 image_io = image_io_reader.get_data(0)
 
                 # multiply pixel data by scale coefficient and write to file
-                image_io_corrected = (image_io / 100 - 273.15).astype(np.float32)
+                image_io_corrected = (((image_io / 100 - 273.15) *(9/5)) + 32).astype(np.float32)
 
                 image_io_writer = imageio.get_writer(output_image_path, format="tif")
                 image_io_writer.append_data(image_io_corrected)
