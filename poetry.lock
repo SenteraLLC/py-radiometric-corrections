@@ -369,14 +369,14 @@ files = [
 
 [[package]]
 name = "imageio"
-version = "2.31.6"
+version = "2.32.0"
 description = "Library for reading and writing a wide range of image, video, scientific, and volumetric data formats."
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "imageio-2.31.6-py3-none-any.whl", hash = "sha256:70410af62626a4d725b726ab59138e211e222b80ddf8201c7a6561d694c6238e"},
-    {file = "imageio-2.31.6.tar.gz", hash = "sha256:721f238896a9a99a77b73f06f42fc235d477d5d378cdf34dd0bee1e408b4742c"},
+    {file = "imageio-2.32.0-py3-none-any.whl", hash = "sha256:70e63a8955fb08242c9cbc4cdc40728ab892f76955b99cc6a0c5f304b4b84970"},
+    {file = "imageio-2.32.0.tar.gz", hash = "sha256:e425ad36c605308d9ea6d93eda7b0987926059b8b86220e142a599a7975128dd"},
 ]
 
 [package.dependencies]
@@ -384,15 +384,16 @@ numpy = "*"
 pillow = ">=8.3.2,<10.1.0"
 
 [package.extras]
-all-plugins = ["astropy", "av", "imageio-ffmpeg", "psutil", "tifffile"]
-all-plugins-pypy = ["av", "imageio-ffmpeg", "psutil", "tifffile"]
+all-plugins = ["astropy", "av", "imageio-ffmpeg", "pillow-heif", "psutil", "tifffile"]
+all-plugins-pypy = ["av", "imageio-ffmpeg", "pillow-heif", "psutil", "tifffile"]
 build = ["wheel"]
 dev = ["black", "flake8", "fsspec[github]", "pytest", "pytest-cov"]
 docs = ["numpydoc", "pydata-sphinx-theme", "sphinx (<6)"]
 ffmpeg = ["imageio-ffmpeg", "psutil"]
 fits = ["astropy"]
-full = ["astropy", "av", "black", "flake8", "fsspec[github]", "gdal", "imageio-ffmpeg", "itk", "numpydoc", "psutil", "pydata-sphinx-theme", "pytest", "pytest-cov", "sphinx (<6)", "tifffile", "wheel"]
+full = ["astropy", "av", "black", "flake8", "fsspec[github]", "gdal", "imageio-ffmpeg", "itk", "numpydoc", "pillow-heif", "psutil", "pydata-sphinx-theme", "pytest", "pytest-cov", "sphinx (<6)", "tifffile", "wheel"]
 gdal = ["gdal"]
+heif = ["pillow-heif"]
 itk = ["itk"]
 linting = ["black", "flake8"]
 pyav = ["av"]
@@ -424,7 +425,7 @@ timestamps = ["timezonefinder (>=5.2.0,<6.0.0)"]
 [package.source]
 type = "git"
 url = "https://github.com/SenteraLLC/py-image-metadata-parser.git"
-reference = "loosen-python-constraints"
+reference = "v.1.15.2"
 resolved_reference = "0069f49c8cd028ca54a4553f5885a95c04dcb0d2"
 
 [[package]]
@@ -998,4 +999,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "a3661b0fc7ff69259696216e8f173941a2b3687591cb269b636f9390dd88be02"
+content-hash = "73e067f7dc67fb25aebf48cbea7c07414837d8a8ab395c4751628b1d3ed1108b"
