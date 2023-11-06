@@ -20,7 +20,7 @@ def apply_sensor_settings(image_df):
     """Rebuild image dataframe with settings based on sensor model."""
     rows = []
 
-    for index, row in image_df.iterrows():
+    for _, row in image_df.iterrows():
         for s in sensor_defs:
             # verify image metadata matches that of a supported sensor
             meets_criteria = True
@@ -84,7 +84,7 @@ def create_image_df(input_path, output_path):
 
     image_df["image_path"] = glob(input_path + "/**/*.tif", recursive=True) + glob(
         input_path + "/**/*.jpg", recursive=True
-    )
+    ) + glob(input_path + "/**/*.TIF", recursive=True) + glob(input_path + "/**/*.JPG", recursive=True)
     image_df["image_root"] = image_df.image_path.apply(os.path.dirname)
     image_df["output_path"] = image_df.image_path.str.replace(
         input_path, output_path, regex=False

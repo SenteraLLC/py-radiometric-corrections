@@ -8,8 +8,6 @@ import numpy as np
 from PIL import Image
 
 # Constants
-MAX_VAL_12BIT = 4096
-
 ARUCO_SIDE_LENGTH_M = 0.07
 ARUCO_TOP_TO_PANEL_CENTER_M = 0.06
 
@@ -33,14 +31,14 @@ class BoundingBox(NamedTuple):
         )
 
 
-def convert_12bit_to_type(image, desired_type=np.uint8):
+def convert_to_type(image, max_val, desired_type=np.uint8):
     """
     Convert the 12-bit tiff from a 6X sensor to a numpy compatible form.
 
     :param desired_type: The desired type
     :return: The converted image in numpy.array format
     """
-    image = image / MAX_VAL_12BIT  # Scale to 0-1
+    image = image / max_val  # Scale to 0-1
     image = np.iinfo(desired_type).max * image  # Scale back to desired type
     return image.astype(desired_type)
 
@@ -132,10 +130,9 @@ def get_reflectance(row):
     :return: The average value of the reflectance panel a valid calibration image, NaN if image is invalid
     """
     if "band_math" not in row.index:
-        # Read the original (12-bit) tiff with the next largest commonly used container (16-bit)
         image = np.asarray(Image.open(row["image_path"])).astype(np.uint16)
         # OpenCV aruco detection only accepts 8-bit data
-        panel = extract_panel_bounds(convert_12bit_to_type(image, np.uint8))
+        panel = extract_panel_bounds(convert_to_type(image, row.max_val, np.uint8))
     else:
         image = np.asarray(Image.open(row["image_path"])).astype(np.uint8)
         panel = extract_panel_bounds(image)
