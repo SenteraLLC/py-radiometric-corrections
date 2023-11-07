@@ -8,9 +8,10 @@ install:
   - perl Makefile.PL
   - sudo make install
   - cd ..
+  - pip uninstall urllib3
+  - pip install "urllib3>=1.0.0,<2.0.0"
   - curl -sSL https://install.python-poetry.org | python3 -
   - export PATH="/root/.local/bin:$PATH"
-  - pip install "urllib3>=1.0.0,<2.0.0"
   - poetry install
 
 script:
