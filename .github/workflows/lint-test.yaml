@@ -31,12 +31,6 @@ jobs:
         with:
           cache: poetry
 
-      - name: Install SSH keys for private dependencies
-        uses: webfactory/ssh-agent@d4b9b8ff72958532804b70bbe600ad43b36d5f2e # v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_SENTERA_TRAVIS }}
-          log-public-key: false
-
       - name: Enforce style guides and lint rules
         uses: pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507 # v3.0.0
 
