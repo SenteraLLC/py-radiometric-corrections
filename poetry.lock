@@ -425,7 +425,7 @@ timestamps = ["timezonefinder (>=5.2.0,<6.0.0)"]
 [package.source]
 type = "git"
 url = "https://github.com/SenteraLLC/py-image-metadata-parser.git"
-reference = "v.1.15.2"
+reference = "v1.15.2"
 resolved_reference = "0069f49c8cd028ca54a4553f5885a95c04dcb0d2"
 
 [[package]]
@@ -999,4 +999,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "73e067f7dc67fb25aebf48cbea7c07414837d8a8ab395c4751628b1d3ed1108b"
+content-hash = "3c33c989074c1465b522913be6f7b6f61cb803d406af9113d7a26eb25017efc7"
