@@ -33,8 +33,10 @@ class BoundingBox(NamedTuple):
 
 def convert_to_type(image, max_val, desired_type=np.uint8):
     """
-    Convert the 12-bit tiff from a 6X sensor to a numpy compatible form.
+    Convert the data type of a numpy array to another data type, scaling accordingly.
 
+    :param image: The array to convert
+    :param max_val: The max_val of the input array
     :param desired_type: The desired type
     :return: The converted image in numpy.array format
     """
