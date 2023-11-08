@@ -1,0 +1,44 @@
+name: Lint and Test
+on:
+  push:
+    branches-ignore:
+      [master]
+
+jobs:
+  lint:
+    name: Lint and test
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+        with:
+          fetch-depth: 0
+
+      - name: Install Exiftool
+        run: |
+          wget https://exiftool.org/Image-ExifTool-12.52.tar.gz
+          gzip -dc Image-ExifTool-12.52.tar.gz | tar -xf -
+          cd Image-ExifTool-12.52
+          perl Makefile.PL
+          sudo make install
+          cd ..
+
+      - name: Install poetry dependency manager
+        run: pipx install poetry==1.5.1
+
+      - name: Setup Python environment
+        uses: actions/setup-python@v4.7.1
+        with:
+          cache: poetry
+
+      - name: Enforce style guides and lint rules
+        uses: pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507 # v3.0.0
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run unit tests
+        run: poetry run pytest
+
+      - name: Confirm repo is clean
+        run: git diff-index --quiet HEAD
