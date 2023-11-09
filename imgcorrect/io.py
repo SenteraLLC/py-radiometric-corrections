@@ -82,12 +82,9 @@ def create_image_df(input_path, output_path):
 
     image_df = pd.DataFrame()
 
-    image_df["image_path"] = (
-        glob(input_path + "/**/*.tif", recursive=True)
-        + glob(input_path + "/**/*.jpg", recursive=True)
-        + glob(input_path + "/**/*.TIF", recursive=True)
-        + glob(input_path + "/**/*.JPG", recursive=True)
-    )
+    image_df["image_path"] = glob(
+        input_path + "/**/*.[Tt][Ii][Ff]", recursive=True
+    ) + glob(input_path + "/**/*.[Jj][Pp][Gg]", recursive=True)
     image_df["image_root"] = image_df.image_path.apply(os.path.dirname)
     image_df["output_path"] = image_df.image_path.str.replace(
         input_path, output_path, regex=False
