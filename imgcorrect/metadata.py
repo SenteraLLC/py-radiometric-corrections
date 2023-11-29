@@ -21,6 +21,8 @@ def copy_exif(image_df_row, exiftool_path):
         "--xmp-Camera:ColorTransform",
         "--xmp-Camera:SunSensor",
         "-xmp-Camera:IsNormalized=1",
+        "-xmp-Camera:BlackCurrent=",
+        "-xmp-Camera:BlackCurrent=0",
     ]
     if image_df_row.reduce_xmp:
         cent_arr, fwhm_arr = imgparse.get_wavelength_data(image_df_row.image_path)
