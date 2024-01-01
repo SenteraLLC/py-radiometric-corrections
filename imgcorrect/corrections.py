@@ -302,15 +302,20 @@ def correct_images(
 
     # Check for LWIR folder and convert images
     lwir_folder_path = None
-    input_folders = [
-        f for f in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, f))
-    ]
-    if not input_folders:
-        if "lwir" in os.path.split(input_path)[1].lower():
-            lwir_folder_path = input_path
-    for folder in input_folders:
-        if "lwir" in folder.lower():
-            lwir_folder_path = os.path.join(input_path, folder)
+    if isinstance(input_path, list):
+        for path in input_path:
+            if "lwir" in path.lower():
+                lwir_folder_path = path
+    else:
+        input_folders = [
+            f for f in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, f))
+        ]
+        if not input_folders:
+            if "lwir" in os.path.split(input_path)[1].lower():
+                lwir_folder_path = input_path
+        for folder in input_folders:
+            if "lwir" in folder.lower():
+                lwir_folder_path = os.path.join(input_path, folder)
 
     if lwir_folder_path is not None:
         lwir_output_path = os.path.join(output_path, os.path.split(lwir_folder_path)[1])

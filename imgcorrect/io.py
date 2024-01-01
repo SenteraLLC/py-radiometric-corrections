@@ -77,14 +77,24 @@ def apply_sensor_settings(image_df):
 
 def create_image_df(input_path, output_path):
     """Build image dataframe."""
+    image_df = pd.DataFrame()
+
+    if isinstance(input_path, list):
+        image_paths = []
+        for ip in input_path:
+            image_paths.extend(
+                glob(ip + "/**/*.[Tt][Ii][Ff]", recursive=True) +
+                glob(ip + "/**/*.[Jj][Pp][Gg]", recursive=True)
+            )
+        image_df["image_path"] = image_paths
+        input_path = os.path.dirname(os.path.dirname(image_paths[0]))
+    else:
+        image_df["image_path"] = glob(
+            input_path + "/**/*.[Tt][Ii][Ff]", recursive=True
+        ) + glob(input_path + "/**/*.[Jj][Pp][Gg]", recursive=True)
     if not output_path:
         output_path = input_path
 
-    image_df = pd.DataFrame()
-
-    image_df["image_path"] = glob(
-        input_path + "/**/*.[Tt][Ii][Ff]", recursive=True
-    ) + glob(input_path + "/**/*.[Jj][Pp][Gg]", recursive=True)
     image_df["image_root"] = image_df.image_path.apply(os.path.dirname)
     image_df["output_path"] = image_df.image_path.str.replace(
         input_path, output_path, regex=False
