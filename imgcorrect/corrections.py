@@ -3,6 +3,7 @@
 import logging
 import os
 import tempfile
+from datetime import datetime
 
 import imgparse
 import numpy as np
@@ -213,9 +214,12 @@ def get_corrections(
     )
 
     # Get and sort by timestamp
-    image_df["timestamp"] = image_df.apply(
-        lambda row: imgparse.get_timestamp(row.image_path, row.EXIF), axis=1
-    )
+    def _get_timestamp(exif):
+        return datetime.strptime(
+            exif["EXIF DateTimeOriginal"].values, "%Y:%m:%d %H:%M:%S"
+        )
+
+    image_df["timestamp"] = image_df.EXIF.apply(_get_timestamp)
     image_df = image_df.set_index("timestamp", drop=False).sort_index()
 
     # Attempt to parse ILS metadata
@@ -250,7 +254,20 @@ def get_corrections(
             image_df, calibration_df, not no_ils_correct
         )
     else:
-        image_df["slope_coefficient"] = 1
+
+        def get_sensitivity(row):
+            xmp = imgparse.get_xmp_data(row.image_path)
+            if "Camera:BandSensitivity" in xmp:
+                sensitivity = float(
+                    imgparse.util.parse_seq(xmp["Camera:BandSensitivity"])[
+                        row.XMP_index
+                    ]
+                )
+                return 1 / sensitivity
+            else:
+                return 1
+
+        image_df["slope_coefficient"] = image_df.apply(get_sensitivity, axis=1)
 
     image_df["correction_coefficient"] = image_df.apply(
         lambda row: compute_correction_coefficient(row), axis=1
