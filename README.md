@@ -1,7 +1,7 @@
 # py-radiometric-corrections
 Library to perform various corrections on imagery from supported sensors, including Sentera 6X and Sentera Double 4K
 
-### Note - if you just want to run the tool, the repo includes a precompiled Microsoft Windows executable in 'dist'
+### Note - if you just want to run the tool, ImageryCorrector.exe can be downloaded from the most recent tagged Release.
 ### Skip down to 'Executable Usage' for instructions on the binary executable.
 
 ### Installation instructions for usage in Python
