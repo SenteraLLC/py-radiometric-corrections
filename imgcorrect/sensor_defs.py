@@ -108,6 +108,7 @@ sensor_defs = [
             "Image Model": [
                 "82KP",  # LWIR
                 "20MP-ERS",  # RGB
+                "328KP",  # LWIR
             ]
         },
         "settings": {
