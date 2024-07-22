@@ -387,7 +387,7 @@ tifffile = ["tifffile"]
 
 [[package]]
 name = "imgparse"
-version = "1.15.2"
+version = "1.18.1"
 description = "Python image-metadata-parser utilities"
 optional = false
 python-versions = "^3.8"
@@ -409,7 +409,7 @@ timestamps = ["timezonefinder (>=5.2.0,<6.0.0)"]
 [package.source]
 type = "git"
 url = "https://github.com/SenteraLLC/py-image-metadata-parser.git"
-reference = "v1.15.2"
+reference = "v1.18.1"
 resolved_reference = "0069f49c8cd028ca54a4553f5885a95c04dcb0d2"
 
 [[package]]
