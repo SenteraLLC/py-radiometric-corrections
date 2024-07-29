@@ -388,7 +388,7 @@ tifffile = ["tifffile"]
 
 [[package]]
 name = "imgparse"
-version = "1.18.1"
+version = "v1.18.1"
 description = "Python image-metadata-parser utilities"
 optional = false
 python-versions = "^3.8"
