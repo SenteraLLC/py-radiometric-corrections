@@ -99,6 +99,7 @@ sensor_defs = [
             "sensor": "6x",
             "cal_in_path": True,
             "independent_ils": True,
+            "max_val": 4096,
         },
     },
     {
@@ -107,12 +108,28 @@ sensor_defs = [
             "Image Model": [
                 "82KP",  # LWIR
                 "20MP-ERS",  # RGB
+                "328KP",  # LWIR
             ]
         },
         "settings": {
             "sensor": "6x_thermal",
             "cal_in_path": True,
             "independent_ils": True,
+            "max_val": 4096,
+        },
+    },
+    {
+        "criteria": {"Image Make": "DJI", "Image Model": "M3M"},
+        "ignore_criteria": {
+            "EXIF ColorSpace": [
+                "sRGB",  # RGB
+            ]
+        },
+        "settings": {
+            "sensor": "M3M",
+            "cal_in_path": False,
+            "independent_ils": True,
+            "max_val": 65536,
         },
     },
 ]

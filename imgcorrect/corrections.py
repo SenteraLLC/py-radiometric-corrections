@@ -261,7 +261,20 @@ def get_corrections(
             image_df, calibration_df, not no_ils_correct
         )
     else:
-        image_df["slope_coefficient"] = 1
+
+        def get_sensitivity(row):
+            xmp = imgparse.get_xmp_data(row.image_path)
+            if "Camera:BandSensitivity" in xmp:
+                sensitivity = float(
+                    imgparse.util.parse_seq(xmp["Camera:BandSensitivity"])[
+                        row.XMP_index
+                    ]
+                )
+                return 1 / sensitivity
+            else:
+                return 1
+
+        image_df["slope_coefficient"] = image_df.apply(get_sensitivity, axis=1)
 
     image_df["correction_coefficient"] = image_df.progress_apply(
         lambda row: compute_correction_coefficient(row), axis=1
