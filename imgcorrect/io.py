@@ -2,10 +2,10 @@
 
 import logging
 import os
-import re
 import shutil
 from glob import glob
 
+import imgparse
 import numpy as np
 import pandas as pd
 import tifffile as tf
@@ -57,14 +57,14 @@ def apply_sensor_settings(image_df):
                         band_row["output_path"] = add_band_to_path(
                             row.output_path, band[0]
                         ).replace(".jpg", ".tif")
+                        band_row["ID"] = imgparse.get_unique_id(row.image_path)
                         rows.append(band_row)
-                # otherwise, assume band is indicated in root folder name
+                # otherwise, extract bandname from image metadata
                 else:
-                    row["band"] = re.search(
-                        r"[A-Za-z]+", os.path.basename(row.image_root)
-                    ).group(0)
+                    row["band"] = imgparse.get_bandnames(row.image_path)[0]
                     row["XMP_index"] = 0
                     row["reduce_xmp"] = False
+                    row["ID"] = imgparse.get_unique_id(row.image_path)
                     rows.append(row)
 
                 break
@@ -72,7 +72,18 @@ def apply_sensor_settings(image_df):
             logger.error("Sensor not supported")
             raise Exception("Sensor not supported")
 
-    return pd.DataFrame(rows)
+    new_image_df = pd.DataFrame(rows)
+    images_before_filtering = len(new_image_df.index)
+    band_count = len(new_image_df["band"].unique())
+    # number of occurences of each ID
+    v = new_image_df.ID.value_counts()
+    # remove images that don't appear in every band
+    new_image_df = new_image_df[new_image_df.ID.isin(v.index[v.eq(band_count)])]
+    logger.info(
+        f"Skipping {images_before_filtering - len(new_image_df.index)} images because they don't have data for all bands"
+    )
+
+    return new_image_df
 
 
 def create_image_df(input_path, output_path):
