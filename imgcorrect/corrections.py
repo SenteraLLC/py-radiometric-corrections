@@ -230,7 +230,11 @@ def get_corrections(
     try:
 
         def _get_ils(row):
-            return imgparse.get_ils(row.image_path)[0]
+            make, _ = imgparse.get_make_and_model(row.image_path)
+            if make == "DJI":
+                return imgparse.get_irradiance(row.image_path)
+            else:
+                return imgparse.get_ils(row.image_path)[0]
 
         image_df["ILS"] = image_df.progress_apply(_get_ils, axis=1)
     except imgparse.ParsingError:
