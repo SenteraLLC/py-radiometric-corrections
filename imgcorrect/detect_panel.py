@@ -105,7 +105,13 @@ def extract_panel_bounds(image):
             top_left=top_left, bottom_right=bottom_right, aruco_id=ids[0][0]
         )
     else:
-        return None
+        if ids is not None:
+            logger.warning(
+                "Aruco ID: %d detected and not supported, skipping image.", ids[0][0]
+            )
+            return None
+        else:
+            return None
 
 
 def isolate_band(image, band_math_arr):
