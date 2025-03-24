@@ -56,7 +56,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    corrections_data = corrections.get_corrections(**vars(args))
+    corrections_data, calibration_sets, selected_group_id = corrections.get_corrections(
+        **vars(args)
+    )
     io.write_corrections_csv(
         corrections_data, os.path.join(args.output_path, "radiometric-corrections.csv")
     )

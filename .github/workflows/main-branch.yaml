@@ -1,28 +1,37 @@
-name: Main branch
+name: Create GitHub Release
+
 on:
   push:
-    branches: master
+    branches:
+      - master
+  workflow_dispatch:
 
 jobs:
-  version:
-    name: Generate a version
-    runs-on: ubuntu-20.04
-    steps:
-    - id: version
-      name: Generate a date-based version
-      run: echo "version=$(date +'%Y.%m%d.%H%M%S')" >> "$GITHUB_OUTPUT"
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-
   release:
-    name: Create a GitHub Release
-    needs: [version]
-    runs-on: ubuntu-20.04
+    name: Create GitHub Release
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
+
     steps:
-      - name: Create a GitHub Release
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+        with:
+          fetch-depth: 0
+
+      - name: TOML Reader
+        id: read_toml
+        uses: SebRollen/toml-action@2bd04b06a3ebc3e6a3eb6060de115710cad16cd6 #v1.0.2
+        with:
+          file: 'pyproject.toml'
+          field: 'tool.poetry.version'
+
+      - name: Define TAG
+        run: |
+          export VERSION="${{ steps.read_toml.outputs.value }}"
+          echo "TAG=v$VERSION" >> $GITHUB_ENV
+      - name: Create Release
+        uses: actions/github-script@v6
         with:
           result-encoding: string
           retries: 3
@@ -30,8 +39,8 @@ jobs:
             github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: "${{needs.version.outputs.version}}",
+              tag_name: process.env.TAG,
               target_commitish: context.sha,
-              name: "${{needs.version.outputs.version}}",
+              name: process.env.TAG,
               generate_release_notes: true
             })
