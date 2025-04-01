@@ -1,8 +1,7 @@
 .idea
 __pycache__/
 build/
-dist/GetCorrectionsCsv
-dist/ImageryCorrector
+dist/*
 .vscode
 
 *.egg*
