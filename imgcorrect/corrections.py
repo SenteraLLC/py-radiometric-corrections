@@ -3,11 +3,11 @@
 import logging
 import os
 import tempfile
-from datetime import datetime
 
 import imgparse
 import numpy as np
 import tifffile as tf
+from imgparse import MetadataParser, ParsingError
 from PIL import Image
 from tqdm import tqdm
 
@@ -55,14 +55,20 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
             )
 
         logger.debug("Detected aruco marker id: %s", {row["aruco_id"]})
-        cent_arr, fwhm_arr = imgparse.get_wavelength_data(row.image_path)
+        cent_arr, fwhm_arr = MetadataParser(row.image_path).wavelength_data()
         cent = int(cent_arr[int(row.XMP_index)])
         wfhm = int(fwhm_arr[int(row.XMP_index)])
 
         return np.average(coeffs[cent - wfhm : cent + wfhm + 1])
 
     def _get_ils_scaling(band_row):
-        calibration_img_ils = imgparse.get_ils(band_row.image_path)[0]
+        if MetadataParser(band_row.image_path).make() == "DJI":
+            try:
+                calibration_img_ils = MetadataParser(band_row.image_path).irradiance()
+            except ParsingError:
+                calibration_img_ils = MetadataParser(band_row.image_path).ils()[0]
+        else:
+            calibration_img_ils = MetadataParser(band_row.image_path).ils()[0]
         return band_row.ILS / calibration_img_ils
 
     if calibration_df.empty:
@@ -203,7 +209,9 @@ def get_corrections(
     image_df = io.create_image_df(input_path, output_path)
 
     # Get image metadata:
-    image_df["EXIF"] = image_df.image_path.apply(imgparse.get_exif_data)
+    image_df["EXIF"] = image_df.apply(
+        lambda row: MetadataParser(row.image_path).exif_data, axis=1
+    )
 
     # Determine sensor type apply sensor specific settings
     image_df = io.apply_sensor_settings(image_df)
@@ -211,18 +219,15 @@ def get_corrections(
     # Get autoexposure correction:
     logger.info("Getting autoexposure")
     image_df["autoexposure"] = image_df.progress_apply(
-        lambda row: imgparse.get_autoexposure(row.image_path, row.EXIF) / 100, axis=1
+        lambda row: MetadataParser(row.image_path).autoexposure() / 100, axis=1
     )
 
     # Get and sort by timestamp
     logger.info("Getting timestamps")
 
-    def _get_timestamp(exif):
-        return datetime.strptime(
-            exif["EXIF DateTimeOriginal"].values, "%Y:%m:%d %H:%M:%S"
-        )
-
-    image_df["timestamp"] = image_df.EXIF.apply(_get_timestamp)
+    image_df["timestamp"] = image_df.apply(
+        lambda row: MetadataParser(row.image_path).timestamp(), axis=1
+    )
     image_df = image_df.set_index("timestamp", drop=False).sort_index()
 
     # Attempt to parse ILS metadata
@@ -230,10 +235,16 @@ def get_corrections(
     try:
 
         def _get_ils(row):
-            return imgparse.get_ils(row.image_path)[0]
+            if MetadataParser(row.image_path).make() == "DJI":
+                try:
+                    return MetadataParser(row.image_path).irradiance()
+                except ParsingError:
+                    return MetadataParser(row.image_path).ils()[0]
+            else:
+                return MetadataParser(row.image_path).ils()[0]
 
         image_df["ILS"] = image_df.progress_apply(_get_ils, axis=1)
-    except imgparse.ParsingError:
+    except ParsingError:
         if not no_ils_correct:
             logger.warning(
                 "ILS metadata could not be found. Running without ILS corrections."
@@ -263,7 +274,7 @@ def get_corrections(
     else:
 
         def get_sensitivity(row):
-            xmp = imgparse.get_xmp_data(row.image_path)
+            xmp = MetadataParser(row.image_path).xmp_data()
             if "Camera:BandSensitivity" in xmp:
                 sensitivity = float(
                     imgparse.util.parse_seq(xmp["Camera:BandSensitivity"])[

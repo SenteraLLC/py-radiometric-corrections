@@ -59,6 +59,11 @@ if __name__ == "__main__":
     corrections_data, calibration_sets, selected_group_id = corrections.get_corrections(
         **vars(args)
     )
+
+    os.makedirs(args.output_path, exist_ok=True)
+    calibration_df = calibration_sets.get_group(selected_group_id)
     io.write_corrections_csv(
-        corrections_data, os.path.join(args.output_path, "radiometric-corrections.csv")
+        corrections_data,
+        calibration_df,
+        os.path.join(args.output_path, "radiometric-corrections.csv"),
     )

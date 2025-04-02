@@ -5,10 +5,10 @@ import os
 import shutil
 from glob import glob
 
-import imgparse
 import numpy as np
 import pandas as pd
 import tifffile as tf
+from imgparse import MetadataParser
 
 from imgcorrect import detect_panel
 from imgcorrect.sensor_defs import sensor_defs
@@ -57,14 +57,14 @@ def apply_sensor_settings(image_df):
                         band_row["output_path"] = add_band_to_path(
                             row.output_path, band[0]
                         ).replace(".jpg", ".tif")
-                        band_row["ID"] = imgparse.get_unique_id(row.image_path)
+                        band_row["ID"] = MetadataParser(row.image_path).capture_id()
                         rows.append(band_row)
                 # otherwise, extract bandname from image metadata
                 else:
-                    row["band"] = imgparse.get_bandnames(row.image_path)[0]
+                    row["band"] = MetadataParser(row.image_path).bandnames()[0]
                     row["XMP_index"] = 0
                     row["reduce_xmp"] = False
-                    row["ID"] = imgparse.get_unique_id(row.image_path)
+                    row["ID"] = MetadataParser(row.image_path).capture_id()
                     rows.append(row)
 
                 break
@@ -167,18 +167,24 @@ def write_image(image_arr_corrected, image_df_row, temp_dir):
     return image_df_row
 
 
-def write_corrections_csv(image_df, file):
+def write_corrections_csv(image_df, cal_df, file):
     """Write vital correction data from the dataframe to the given csv file."""
-    columns = [
-        "image_path",
-        "independent_ils",
-        "band",
-        "autoexposure",
-        "ILS_ratio",
-        "slope_coefficient",
-        "correction_coefficient",
+    csv_df = pd.concat([image_df, cal_df], ignore_index=True)
+    csv_df = csv_df[
+        [
+            "image_path",
+            "independent_ils",
+            "band",
+            "autoexposure",
+            "timestamp",
+            "ILS",
+            "ILS_ratio",
+            "slope_coefficient",
+            "correction_coefficient",
+            "mean_reflectance",
+            "aruco_id",
+        ]
     ]
-    csv_df = image_df[columns].copy()
     base_dir = os.path.dirname(file)
 
     # Get the path relative to the output folder
