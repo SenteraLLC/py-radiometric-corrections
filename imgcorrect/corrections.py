@@ -274,7 +274,7 @@ def get_corrections(
     else:
 
         def get_sensitivity(row):
-            xmp = MetadataParser(row.image_path).xmp_data()
+            xmp = MetadataParser(row.image_path).xmp_data
             if "Camera:BandSensitivity" in xmp:
                 sensitivity = float(
                     imgparse.util.parse_seq(xmp["Camera:BandSensitivity"])[
