@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 import shutil
 from glob import glob
 
@@ -46,7 +47,7 @@ def apply_sensor_settings(image_df):
                 for key, val in s["settings"].items():
                     row[key] = val
 
-                # if each image contains data for multiple bands, configure accordingly
+                # if each image contains data for multiple bands, configure accordingly (D4k sensors)
                 if "bands" in s:
                     for band in s["bands"]:
                         band_row = row.copy()
@@ -57,7 +58,9 @@ def apply_sensor_settings(image_df):
                         band_row["output_path"] = add_band_to_path(
                             row.output_path, band[0]
                         ).replace(".jpg", ".tif")
-                        band_row["ID"] = MetadataParser(row.image_path).capture_id()
+                        band_row["ID"] = re.findall(
+                            r"IMG_(\d+)", os.path.basename(row.image_path)
+                        )[0]
                         rows.append(band_row)
                 # otherwise, extract bandname from image metadata
                 else:
