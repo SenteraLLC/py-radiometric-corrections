@@ -26,7 +26,7 @@ def copy_exif(image_df_row, exiftool_path):
     ]
     if image_df_row.reduce_xmp:
         cent_arr, fwhm_arr = MetadataParser(image_df_row.image_path).wavelength_data()
-        band_arr = MetadataParser(image_df_row.image_path).bandnames
+        band_arr = MetadataParser(image_df_row.image_path).bandnames()
         i = int(image_df_row.XMP_index)
         command += [
             "-xmp-Camera:BandName=",
