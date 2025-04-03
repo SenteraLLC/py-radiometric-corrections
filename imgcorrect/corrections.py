@@ -62,13 +62,14 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
         return np.average(coeffs[cent - wfhm : cent + wfhm + 1])
 
     def _get_ils_scaling(band_row):
-        if MetadataParser(band_row.image_path).make() == "DJI":
+        parser = MetadataParser(band_row.image_path)
+        if parser.make() == "DJI":
             try:
-                calibration_img_ils = MetadataParser(band_row.image_path).irradiance()
+                calibration_img_ils = parser.irradiance()
             except ParsingError:
-                calibration_img_ils = MetadataParser(band_row.image_path).ils()[0]
+                calibration_img_ils = parser.ils()[0]
         else:
-            calibration_img_ils = MetadataParser(band_row.image_path).ils()[0]
+            calibration_img_ils = parser.ils()[0]
         return band_row.ILS / calibration_img_ils
 
     if calibration_df.empty:
