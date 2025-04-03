@@ -64,10 +64,11 @@ def apply_sensor_settings(image_df):
                         rows.append(band_row)
                 # otherwise, extract bandname from image metadata
                 else:
-                    row["band"] = MetadataParser(row.image_path).bandnames()[0]
+                    parser = MetadataParser(row.image_path)
+                    row["band"] = parser.bandnames()[0]
                     row["XMP_index"] = 0
                     row["reduce_xmp"] = False
-                    row["ID"] = MetadataParser(row.image_path).capture_id()
+                    row["ID"] = parser.capture_id()
                     rows.append(row)
 
                 break

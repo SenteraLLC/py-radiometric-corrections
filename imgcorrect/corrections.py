@@ -236,13 +236,14 @@ def get_corrections(
     try:
 
         def _get_ils(row):
-            if MetadataParser(row.image_path).make() == "DJI":
+            parser = MetadataParser(row.image_path)
+            if parser.make() == "DJI":
                 try:
-                    return MetadataParser(row.image_path).irradiance()
+                    return parser.irradiance()
                 except ParsingError:
-                    return MetadataParser(row.image_path).ils()[0]
+                    return parser.ils()[0]
             else:
-                return MetadataParser(row.image_path).ils()[0]
+                return parser.ils()[0]
 
         image_df["ILS"] = image_df.progress_apply(_get_ils, axis=1)
     except ParsingError:
