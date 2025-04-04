@@ -236,6 +236,12 @@ def get_corrections(
     try:
 
         def _get_ils(row):
+            """Get the ILS value from the Image.
+
+            DJI cameras with a DLS sensor additionally have an irradiance value
+            that is better than the SunSensor value.  Some may not have the irradiance
+            tag, so fall back to SunSensor if available, if not ILS corrections will be disabled.
+            """
             parser = MetadataParser(row.image_path)
             if parser.make() == "DJI":
                 try:
