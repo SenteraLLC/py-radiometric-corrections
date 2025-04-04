@@ -3,7 +3,7 @@
 import logging
 import subprocess
 
-import imgparse
+from imgparse import MetadataParser
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +25,9 @@ def copy_exif(image_df_row, exiftool_path):
         "-xmp-Camera:BlackCurrent=0",
     ]
     if image_df_row.reduce_xmp:
-        cent_arr, fwhm_arr = imgparse.get_wavelength_data(image_df_row.image_path)
-        band_arr = imgparse.get_bandnames(image_df_row.image_path)
+        parser = MetadataParser(image_df_row.image_path)
+        cent_arr, fwhm_arr = parser.wavelength_data()
+        band_arr = parser.bandnames()
         i = int(image_df_row.XMP_index)
         command += [
             "-xmp-Camera:BandName=",
