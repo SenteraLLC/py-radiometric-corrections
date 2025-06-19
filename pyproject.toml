@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "imgcorrect"
-version = "1.8.1"
+version = "1.8.2"
 description = "Library to perform various corrections on imagery from supported sensors"
-authors = ["Samuel Williams <sam.williams@sentera.com>"]
+authors = ["Samuel Williams <sam.williams@sentera.com>", "Joseph Franck <joseph.franck@sentera.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"

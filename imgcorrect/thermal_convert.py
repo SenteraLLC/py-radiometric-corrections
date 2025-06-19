@@ -2,10 +2,12 @@
 import logging
 import os
 import shutil
+import subprocess
 import tempfile
 
 import imageio
 import numpy as np
+from tqdm import tqdm
 
 ## 12-bit support requires pip install imagecodecs
 
@@ -23,9 +25,11 @@ def convert_thermal(input_path, output_path, exiftool_path):
         if os.path.isfile(os.path.join(input_path, f)) and f.endswith(".tif")
     ]
 
+    logger.info("Converting LWIR images from CentiKelvin(uint16) to Celsius(float32)")
     with tempfile.TemporaryDirectory() as temp_dir:
         # copy image to output location
-        for image in images:
+        for image in tqdm(images):
+
             if "CAL" not in image:
                 # Copy image to temporary directory
                 output_image_path = os.path.join(temp_dir, image)
@@ -45,15 +49,21 @@ def convert_thermal(input_path, output_path, exiftool_path):
                 image_io_writer.close()
 
                 # copy exif and xmp data from input image to corrected image
-                logger.info("copying exif data")
-                os.system(
-                    f'{exiftool_path} -overwrite_original -TagsFromFile "{os.path.join(input_path, image)}" "-xmp" "-exif" "-all"  "{output_image_path}"'
-                )
-
-                logger.info("editing band info")
-                os.system(
-                    f'{exiftool_path} -config "cfg/exiftool.cfg" -overwrite_original "-xmp-Camera:BandName=LWIR" "-xmp-Camera:CentralWavelength=11000" "-xmp-Camera:WavelengthFWHM=6000" "{output_image_path}" '
-                )
+                command = [
+                    exiftool_path,
+                    "-config",
+                    "cfg/exiftool.cfg",
+                    "-overwrite_original",
+                    "-TagsFromFile",
+                    os.path.join(input_path, image),
+                    "-xmp",
+                    "-exif",
+                    "-all",
+                    output_image_path,
+                ]
+                results = subprocess.run(command, capture_output=True)
+                if results.returncode != 0:
+                    raise ValueError("Exiftool command did not run successfully.")
 
                 # Copy output from temp directory to output directory
                 shutil.copy(output_image_path, os.path.join(output_path, image))

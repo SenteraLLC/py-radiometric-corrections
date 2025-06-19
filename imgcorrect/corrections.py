@@ -321,22 +321,20 @@ def correct_images(
 
     The result is applied to each image before the image is re-saved.
     """
-    image_df, calibration_sets, selected_set_id = get_corrections(
-        input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
-    )
-    logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
-
     # Check for LWIR folder and convert images
     lwir_folder_path = None
     input_folders = [
         f for f in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, f))
     ]
+    lwir_only = False
     if not input_folders:
         if "lwir" in os.path.split(input_path)[1].lower():
             lwir_folder_path = input_path
-    for folder in input_folders:
-        if "lwir" in folder.lower():
-            lwir_folder_path = os.path.join(input_path, folder)
+        lwir_only = True
+    else:
+        for folder in input_folders:
+            if "lwir" in folder.lower():
+                lwir_folder_path = os.path.join(input_path, folder)
 
     if lwir_folder_path is not None:
         lwir_output_path = os.path.join(output_path, os.path.split(lwir_folder_path)[1])
@@ -346,34 +344,48 @@ def correct_images(
             lwir_folder_path, lwir_output_path, exiftool_path
         )
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Apply corrections:
-        logger.info("Applying image corrections...")
-        image_df = image_df.progress_apply(
-            lambda row: io.write_image(apply_corrections(row), row, temp_dir), axis=1
+    if not lwir_only:
+        image_df, calibration_sets, selected_set_id = get_corrections(
+            input_path,
+            calibration_id,
+            output_path,
+            no_ils_correct,
+            no_reflectance_correct,
         )
+        logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
 
-        # Adjust scale if necessary:
-        if no_reflectance_correct or uint16_output:
-            logger.info("Adjusting output scale...")
-            image_df.temp_path.progress_apply(
-                lambda path: adjust_scale(
-                    path, image_df.max_val.max(), no_reflectance_correct, uint16_output
-                )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Apply corrections:
+            logger.info("Applying image corrections...")
+            image_df = image_df.progress_apply(
+                lambda row: io.write_image(apply_corrections(row), row, temp_dir),
+                axis=1,
             )
 
-        # Copy EXIF:
-        logger.info("Writing EXIF data...")
-        # progress_apply is tqdm version of apply
-        image_df.progress_apply(
-            lambda row: metadata.copy_exif(row, exiftool_path), axis=1
-        )
+            # Adjust scale if necessary:
+            if no_reflectance_correct or uint16_output:
+                logger.info("Adjusting output scale...")
+                image_df.temp_path.progress_apply(
+                    lambda path: adjust_scale(
+                        path,
+                        image_df.max_val.max(),
+                        no_reflectance_correct,
+                        uint16_output,
+                    )
+                )
 
-        # Delete input imagery if requested:
-        if delete_original:
-            io.delete_all_originals(image_df)
+            # Copy EXIF:
+            logger.info("Writing EXIF data...")
+            # progress_apply is tqdm version of apply
+            image_df.progress_apply(
+                lambda row: metadata.copy_exif(row, exiftool_path), axis=1
+            )
 
-        # Move output imagery to correct output directory:
-        io.move_corrected_images(image_df)
+            # Delete input imagery if requested:
+            if delete_original:
+                io.delete_all_originals(image_df)
 
-    return image_df, calibration_sets, selected_set_id
+            # Move output imagery to correct output directory:
+            io.move_corrected_images(image_df)
+
+        return image_df, calibration_sets, selected_set_id
