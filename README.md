@@ -11,9 +11,9 @@ To use, navigate to the location of the executable in a terminal window and run
 
         >> "Imagery Corrector.exe" -h
 
+This will print the command line argument list, as well as help messages explaining each argument.
 ![image](https://github.com/user-attachments/assets/eb5c9293-0fee-4151-922a-21f8871141c7)
 
-This will print the command line argument list, as well as help messages explaining each argument.
 
 Optional commands:
 
