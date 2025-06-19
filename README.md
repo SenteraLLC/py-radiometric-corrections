@@ -3,7 +3,7 @@ Library to perform various corrections on imagery from supported sensors, includ
 
 ### Note - if you just want to run the tool, ImageryCorrector.exe can be downloaded from the most recent tagged Release.
 ### See 'Executable Usage' for instructions on the binary executable.
-### For Python installation see
+### For Python installation see 'Installation instructions for usage in Python' section.
 
 #### Executable Usage
 The executable simply wraps the `correct_ils_images.py` script, and exposes the same set of command line options.
@@ -11,7 +11,7 @@ To use, navigate to the location of the executable in a terminal window and run
 
         >> "Imagery Corrector.exe" -h
 
-	![image](https://github.com/user-attachments/assets/eb5c9293-0fee-4151-922a-21f8871141c7)
+![image](https://github.com/user-attachments/assets/eb5c9293-0fee-4151-922a-21f8871141c7)
 
 This will print the command line argument list, as well as help messages explaining each argument.
 
