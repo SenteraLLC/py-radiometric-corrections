@@ -1,5 +1,5 @@
 # py-radiometric-corrections
-Library to perform various corrections on imagery from supported sensors, including Sentera 6X, Sentera Double 4K and DJI Mavic 3 Multispectral
+Library to perform various corrections on imagery from supported sensors, including Sentera 6X, Sentera Double 4K and DJI Mavic 3 Multispectral.
 
 ### Note - if you just want to run the tool, ImageryCorrector.exe can be downloaded from the most recent tagged Release.
 ### See 'Executable Usage' for instructions on the binary executable.
