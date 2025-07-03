@@ -62,7 +62,7 @@ def apply_sensor_settings(image_df):
                             band_row["ID"] = re.findall(
                                 r"IMG_(\d+)", os.path.basename(row.image_path)
                             )[0]
-                        except:
+                        except:  # noqa
                             band_row["ID"] = re.findall(
                                 r"CAL_(\d+)", os.path.basename(row.image_path)
                             )[0]
@@ -81,7 +81,7 @@ def apply_sensor_settings(image_df):
         else:
             logger.error("Sensor not supported")
             raise Exception("Sensor not supported")
-        
+
     if "bands" in s:
         return pd.DataFrame(rows)
     else:
