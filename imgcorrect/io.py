@@ -58,10 +58,16 @@ def apply_sensor_settings(image_df):
                         band_row["output_path"] = add_band_to_path(
                             row.output_path, band[0]
                         ).replace(".jpg", ".tif")
-                        band_row["ID"] = re.findall(
-                            r"IMG_(\d+)", os.path.basename(row.image_path)
-                        )[0]
+                        try:
+                            band_row["ID"] = re.findall(
+                                r"IMG_(\d+)", os.path.basename(row.image_path)
+                            )[0]
+                        except:  # noqa
+                            band_row["ID"] = re.findall(
+                                r"CAL_(\d+)", os.path.basename(row.image_path)
+                            )[0]
                         rows.append(band_row)
+
                 # otherwise, extract bandname from image metadata
                 else:
                     parser = MetadataParser(row.image_path)
@@ -76,18 +82,22 @@ def apply_sensor_settings(image_df):
             logger.error("Sensor not supported")
             raise Exception("Sensor not supported")
 
-    new_image_df = pd.DataFrame(rows)
-    images_before_filtering = len(new_image_df.index)
-    band_count = len(new_image_df["band"].unique())
-    # number of occurences of each ID
-    v = new_image_df.ID.value_counts()
-    # remove images that don't appear in every band
-    new_image_df = new_image_df[new_image_df.ID.isin(v.index[v.eq(band_count)])]
-    logger.info(
-        f"Skipping {images_before_filtering - len(new_image_df.index)} images because they don't have data for all bands"
-    )
+    if "bands" in s:
+        return pd.DataFrame(rows)
+    else:
 
-    return new_image_df
+        new_image_df = pd.DataFrame(rows)
+        images_before_filtering = len(new_image_df.index)
+        band_count = len(new_image_df["band"].unique())
+        # number of occurences of each ID
+        v = new_image_df.ID.value_counts()
+        # remove images that don't appear in every band
+        new_image_df = new_image_df[new_image_df.ID.isin(v.index[v.eq(band_count)])]
+        logger.info(
+            f"Skipping {images_before_filtering - len(new_image_df.index)} images because they don't have data for all bands"
+        )
+
+        return new_image_df
 
 
 def create_image_df(input_path, output_path):
