@@ -2,7 +2,6 @@
 
 import logging
 import os
-import re
 import shutil
 from glob import glob
 
@@ -58,14 +57,9 @@ def apply_sensor_settings(image_df):
                         band_row["output_path"] = add_band_to_path(
                             row.output_path, band[0]
                         ).replace(".jpg", ".tif")
-                        try:
-                            band_row["ID"] = re.findall(
-                                r"IMG_(\d+)", os.path.basename(row.image_path)
-                            )[0]
-                        except:  # noqa
-                            band_row["ID"] = re.findall(
-                                r"CAL_(\d+)", os.path.basename(row.image_path)
-                            )[0]
+                        # Use timestamp as ID for D4k sensors.
+                        parser = MetadataParser(row.image_path)
+                        band_row["ID"] = parser.timestamp().strftime("%Y%m%d%H%M%S")
                         rows.append(band_row)
 
                 # otherwise, extract bandname from image metadata
@@ -83,6 +77,7 @@ def apply_sensor_settings(image_df):
             raise Exception("Sensor not supported")
 
     if "bands" in s:
+        # For D4k sensors the images are not time synced and IDs will not match across all bands.
         return pd.DataFrame(rows)
     else:
 

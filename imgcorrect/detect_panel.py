@@ -65,7 +65,6 @@ def extract_panel_bounds(image):
     corners, ids, rejected_img_points = cv.aruco.detectMarkers(image, dictionary)
 
     # if at least one marker detected
-    logger.info(f"panel ids: {ids}")
     if ids is not None and (ids[0][0] == 23 or ids[0][0] == 63):
         aruco_side_length_p = cv.norm(corners[0][0][1] - corners[0][0][0])
         gsd = ARUCO_SIDE_LENGTH_M / aruco_side_length_p
