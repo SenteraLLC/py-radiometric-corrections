@@ -9,6 +9,7 @@ def test_6x_cal_ils():
         False,
         False,
         False,
+        False,
         "exiftool",
         False,
     )
@@ -19,6 +20,7 @@ def test_6x_cal_ils_u16():
         "tests/6x_images/",
         "CAL",
         "tests/output/6x_cal_ils_u16/",
+        False,
         False,
         False,
         False,
@@ -35,6 +37,7 @@ def test_6x_no_ils_no_cal_u16():
         True,
         True,
         False,
+        False,
         "exiftool",
         True,
     )
@@ -47,6 +50,7 @@ def test_d4k_ils():
         "tests/output/d4k_ils/",
         False,
         True,
+        False,
         False,
         "exiftool",
         False,

@@ -41,7 +41,9 @@ def compute_ils_correction(image_df):
     return image_df.drop(columns=["averaged_ILS"])
 
 
-def compute_reflectance_correction(image_df, calibration_df, ils_present):
+def compute_reflectance_correction(
+    image_df, calibration_df, ils_present, all_panels=False
+):
     """Compute coefficient that will scale output values to known panel reflectance."""
 
     def _get_band_coeff(row):
@@ -96,29 +98,41 @@ def compute_reflectance_correction(image_df, calibration_df, ils_present):
     # Split calibration images into groups wherever 10+ seconds pass between timestamps
     from datetime import timedelta
 
-    group_ids = (
-        calibration_df["timestamp"]
-        > (calibration_df["timestamp"].shift() + timedelta(seconds=10))
-    ).cumsum()
-    calibration_sets = calibration_df.groupby(group_ids)
+    if not all_panels:
+        group_ids = (
+            calibration_df["timestamp"]
+            > (calibration_df["timestamp"].shift() + timedelta(seconds=10))
+        ).cumsum()
+        calibration_sets = calibration_df.groupby(group_ids)
 
-    # Narrow down calibration_df to just one calibration set
-    try:
-        band_avg_ils = image_df.groupby("band").ILS.mean().reset_index()
-        min_diff = None
-        min_diff_id = None
-        for set_id, cal_set in calibration_sets:
-            set_avg_ils = cal_set.groupby("band").ILS.mean().reset_index()
-            diff = (band_avg_ils["ILS"] - set_avg_ils["ILS"]).abs().sum()
-            if min_diff is None or diff < min_diff:
-                min_diff = diff
-                min_diff_id = set_id
+        # Narrow down calibration_df to just one calibration set
+        try:
+            band_avg_ils = image_df.groupby("band").ILS.mean().reset_index()
+            min_diff = None
+            min_diff_id = None
+            for set_id, cal_set in calibration_sets:
+                set_avg_ils = cal_set.groupby("band").ILS.mean().reset_index()
+                diff = (band_avg_ils["ILS"] - set_avg_ils["ILS"]).abs().sum()
+                if min_diff is None or diff < min_diff:
+                    min_diff = diff
+                    min_diff_id = set_id
 
-        selected_group_id = min_diff_id
-    except Exception:
-        selected_group_id = 0
+            selected_group_id = min_diff_id
+        except Exception:
+            selected_group_id = 0
 
-    calibration_df = calibration_sets.get_group(selected_group_id)
+        calibration_df = calibration_sets.get_group(selected_group_id)
+        logger.info(
+            "Using calibration set with ID %s for reflectance correction.",
+            selected_group_id,
+        )
+    else:
+        logger.info(
+            "Using all panel images for reflectance correction. "
+            "This may result in less accurate results."
+        )
+        calibration_sets = None
+        selected_group_id = None
 
     band_df = (
         calibration_df.groupby("band")[
@@ -191,7 +205,12 @@ def apply_corrections(image_df_row):
 
 
 def get_corrections(
-    input_path, calibration_id, output_path, no_ils_correct, no_reflectance_correct
+    input_path,
+    calibration_id,
+    output_path,
+    no_ils_correct,
+    no_reflectance_correct,
+    all_panels=False,
 ):
     """
     Find correction coefficient for each image.
@@ -277,7 +296,7 @@ def get_corrections(
     if not no_reflectance_correct:
         logger.info("Computing reflectance correction")
         image_df, calibration_sets, selected_group_id = compute_reflectance_correction(
-            image_df, calibration_df, not no_ils_correct
+            image_df, calibration_df, not no_ils_correct, all_panels
         )
     else:
 
@@ -308,6 +327,7 @@ def correct_images(
     output_path,
     no_ils_correct,
     no_reflectance_correct,
+    all_panels,
     delete_original,
     exiftool_path,
     uint16_output,
@@ -351,6 +371,7 @@ def correct_images(
             output_path,
             no_ils_correct,
             no_reflectance_correct,
+            all_panels=all_panels,
         )
         logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
 

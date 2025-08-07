@@ -50,6 +50,12 @@ if __name__ == "__main__":
         help="If selected, reflectance correction will not be applied to the images.",
     )
     parser.add_argument(
+        "--all_panels",
+        "-a",
+        action="store_true",
+        help="If selected, reflectance correction will be applied using all panel images.",
+    )
+    parser.add_argument(
         "--delete_original",
         "-d",
         action="store_true",
