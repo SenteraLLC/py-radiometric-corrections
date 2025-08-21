@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "imgcorrect"
-version = "1.8.5"
+version = "2.0.0"
 description = "Library to perform various corrections on imagery from supported sensors"
 authors = ["Samuel Williams <sam.williams@sentera.com>", "Joseph Franck <joseph.franck@sentera.com>"]
 
@@ -14,7 +14,6 @@ tqdm = "^4.59.0"
 opencv-contrib-python = ">=4.6.0,<4.7.0"
 imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v2.0.4"}
 imageio = "^2.19.3"
-timezonefinder = "^6.2.0"
 urllib3 = "<2"
 
 [tool.poetry.dev-dependencies]
