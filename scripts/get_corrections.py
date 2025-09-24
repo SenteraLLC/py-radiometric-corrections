@@ -48,6 +48,12 @@ if __name__ == "__main__":
         help="If selected, radiometric-corrections.csv will not use calibration target data in the results",
     )
     parser.add_argument(
+        "--all_panels",
+        "-a",
+        action="store_true",
+        help="If selected, reflectance correction will be applied using all panel images.",
+    )
+    parser.add_argument(
         "--version",
         "-v",
         action="version",

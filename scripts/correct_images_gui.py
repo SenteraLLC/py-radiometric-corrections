@@ -83,7 +83,7 @@ class CorrectImagesApp(tk.Tk):
         self.all_panels_var = tk.BooleanVar()
         self.all_panels_checkbutton = tk.Checkbutton(
             self,
-            text="Use All Panel sets(6X)",
+            text="Use All Panel Sets (6X)",
             variable=self.all_panels_var,
         )
         self.all_panels_checkbutton.grid(row=row, column=0, sticky="w", padx=15)
@@ -100,7 +100,7 @@ class CorrectImagesApp(tk.Tk):
 
         self.uint16_var = tk.BooleanVar()
         self.uint16_checkbutton = tk.Checkbutton(
-            self, text="Output as uint16 (0-65535)", variable=self.uint16_var
+            self, text="Output as UInt16 (0-65535)", variable=self.uint16_var
         )
         self.uint16_checkbutton.grid(row=row, column=0, sticky="w", padx=15)
 
