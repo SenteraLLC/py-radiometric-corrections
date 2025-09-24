@@ -1,4 +1,5 @@
 """Processing for 6x thermal imagery."""
+
 import logging
 import os
 import shutil
