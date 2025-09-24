@@ -13,6 +13,7 @@ The Sentera Radiometric Corrections tool will perform corrections on multispectr
 ##### Optional Inputs/Parameters
 - Reflectance Correction:  Select reflectance correction to perform reflectance corrections using a Sentera calibration panel.  If calibration panel imagery is not detected in the input images, this option will be disabled.
 - ILS Correction:  Select ILS correction to perform lighting corrections using a light sensor.  If ILS values are not detected in the input images this option will be disabled.
+  
 **Note: If Reflectance and ILS corrections are disabled, images will be corrected for exposure only
 
 ##### Advanced Inputs/Parameters
