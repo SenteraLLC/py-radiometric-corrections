@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
@@ -10,8 +11,8 @@ class CorrectImagesApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Sentera Radiometric Corrections")
-        self.geometry("650x500")
-        self.iconbitmap("corrections_gui_icon.ico")
+        self.geometry("600x500")
+        self.iconbitmap("sentera_radiometric_corrections_icon.ico")
         self.create_widgets()
 
     def create_widgets(self):
@@ -21,9 +22,10 @@ class CorrectImagesApp(tk.Tk):
         tk.Entry(
             self, textvariable=self.input_path_var, width=50, justify="right"
         ).grid(row=row, column=1, sticky="e", padx=(0, 5))
-        tk.Button(self, text="Browse", command=self.browse_input).grid(
-            row=row, column=2
+        self.browse_input_button = tk.Button(
+            self, text="Browse", command=self.browse_input
         )
+        self.browse_input_button.grid(row=row, column=2)
         row += 1
 
         tk.Label(self, text="Output Path").grid(row=row, column=0, sticky="w", padx=15)
@@ -31,9 +33,10 @@ class CorrectImagesApp(tk.Tk):
         tk.Entry(
             self, textvariable=self.output_path_var, width=50, justify="right"
         ).grid(row=row, column=1, sticky="e", padx=(0, 5))
-        tk.Button(self, text="Browse", command=self.browse_output).grid(
-            row=row, column=2
+        self.browse_output_button = tk.Button(
+            self, text="Browse", command=self.browse_output
         )
+        self.browse_output_button.grid(row=row, column=2)
         row += 1
 
         self.reflectance_var = tk.BooleanVar(value=True)
@@ -80,7 +83,7 @@ class CorrectImagesApp(tk.Tk):
         self.all_panels_var = tk.BooleanVar()
         self.all_panels_checkbutton = tk.Checkbutton(
             self,
-            text="Use All Panels sets(6X)",
+            text="Use All Panel sets(6X)",
             variable=self.all_panels_var,
         )
         self.all_panels_checkbutton.grid(row=row, column=0, sticky="w", padx=15)
@@ -112,13 +115,16 @@ class CorrectImagesApp(tk.Tk):
             command=self.run_correction,
             bg="green",
             fg="white",
+            width=70,
         )
         self.run_button.grid(row=row, column=0, columnspan=3, pady=20)
         row += 1
 
         # Output text box
         self.output_text = tk.Text(self, height=10, width=70)
-        self.output_text.grid(row=row, column=0, sticky="ew", columnspan=3, padx=25)
+        self.output_text.grid(
+            row=row, column=0, sticky="ew", columnspan=3, padx=(15, 15)
+        )
 
     def toggle_advanced_options(self):
         widgets = [
@@ -168,9 +174,22 @@ class CorrectImagesApp(tk.Tk):
         if path:
             self.exiftool_path_var.set(path)
 
+    def disable_buttons(self):
+        self.run_button["state"] = "disabled"
+        self.browse_input_button["state"] = "disabled"
+        self.browse_output_button["state"] = "disabled"
+        self.exiftool_path_browse_button["state"] = "disabled"
+
+    def enable_buttons(self):
+        self.run_button["state"] = "normal"
+        self.browse_input_button["state"] = "normal"
+        self.browse_output_button["state"] = "normal"
+        self.exiftool_path_browse_button["state"] = "normal"
+
     def run_correction(self):
         import threading
 
+        self.disable_buttons()
         input_path = self.input_path_var.get()
         if not input_path:
             messagebox.showerror("Error", "Input path is required.")
@@ -190,53 +209,70 @@ class CorrectImagesApp(tk.Tk):
             cmd.append("--delete_original")
         if self.exiftool_path_var.get():
             cmd += ["--exiftool_path", self.exiftool_path_var.get()]
+        else:
+            cmd += ["--exiftool_path", os.path.join(sys._MEIPASS, "exiftool.exe")]
         if self.uint16_var.get():
             cmd.append("--uint16_output")
         self.output_text.delete(1.0, tk.END)
         self.output_text.insert(tk.END, f"Running: {' '.join(cmd)}\n")
 
+        os.makedirs(self.output_path_var.get(), exist_ok=True)
+
         def run_subprocess():
             try:
-                process = subprocess.Popen(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    bufsize=1,
-                )
+                # Open the output file for writing
+                with open(
+                    os.path.join(
+                        os.path.split(self.output_path_var.get())[0],
+                        f"{os.path.split(self.output_path_var.get())[1]}_corrections_log.txt",
+                    ),
+                    "w",
+                    encoding="utf-8",
+                ) as outfile:
+                    process = subprocess.Popen(
+                        cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                        bufsize=1,
+                    )
 
-                def read_stdout(stream):
-                    for line in iter(stream.readline, ""):
-                        if line:
-                            self.output_text.after(
-                                0, self.output_text.insert, tk.END, line
-                            )
-                    stream.close()
+                    def read_stdout(stream):
+                        for line in iter(stream.readline, ""):
+                            if line:
+                                self.output_text.after(
+                                    0, self.output_text.insert, tk.END, line
+                                )
+                                outfile.write(line)
+                                outfile.flush()
+                        stream.close()
 
-                def read_stderr(stream):
-                    for line in iter(stream.readline, ""):
-                        if line:
-                            # Replace all text with error output
-                            self.output_text.after(
-                                0, self.output_text.delete, 1.0, tk.END
-                            )
-                            self.output_text.after(
-                                0, self.output_text.insert, tk.END, line
-                            )
-                    stream.close()
+                    def read_stderr(stream):
+                        for line in iter(stream.readline, ""):
+                            if line:
+                                self.output_text.after(
+                                    0, self.output_text.delete, 1.0, tk.END
+                                )
+                                self.output_text.after(
+                                    0, self.output_text.insert, tk.END, line
+                                )
+                                outfile.write(line)
+                                outfile.flush()
+                        stream.close()
 
-                stdout_thread = threading.Thread(
-                    target=read_stdout, args=(process.stdout,)
-                )
-                stderr_thread = threading.Thread(
-                    target=read_stderr, args=(process.stderr,)
-                )
-                stdout_thread.start()
-                stderr_thread.start()
-                stdout_thread.join()
-                stderr_thread.join()
+                    stdout_thread = threading.Thread(
+                        target=read_stdout, args=(process.stdout,)
+                    )
+                    stderr_thread = threading.Thread(
+                        target=read_stderr, args=(process.stderr,)
+                    )
+                    stdout_thread.start()
+                    stderr_thread.start()
+                    stdout_thread.join()
+                    stderr_thread.join()
             except Exception as e:
                 self.output_text.after(0, self.display_exception, e)
+            self.enable_buttons()
 
         threading.Thread(target=run_subprocess, daemon=True).start()
 
