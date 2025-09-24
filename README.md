@@ -3,7 +3,7 @@ Tool to perform various corrections on imagery from supported sensors, including
 
 
 #### GUI Usage
-<img width="602" height="532" alt="image" src="https://github.com/user-attachments/assets/acd53b21-6dfd-4f37-a6e3-269c3bc2a764" />
+<p align="center"><img width="602" height="532" alt="image" src="https://github.com/user-attachments/assets/acd53b21-6dfd-4f37-a6e3-269c3bc2a764" /></p>
 
 The Sentera Radiometric Corrections tool will perform corrections on multispectral drone imagery as well as recflectance corrections when a supported Sentera calibration panel is used.
 
