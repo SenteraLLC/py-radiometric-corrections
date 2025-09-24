@@ -91,7 +91,7 @@ Optional commands:
 
 
 #### Building the Executable
-In a Windows 10 x64 environment, rebuild the executable with pyinstaller using this command:
+In a Windows 10/11 x64 environment, rebuild the executable with pyinstaller using this command:
 
 		>> pyinstaller correct_images_onefile.spec
 
