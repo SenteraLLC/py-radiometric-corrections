@@ -39,6 +39,8 @@ def copy_exif(image_df_row, exiftool_path):
         ]
     command.append(image_df_row.temp_path)
 
-    results = subprocess.run(command, capture_output=True)
+    results = subprocess.run(
+        command, capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW
+    )
     if results.returncode != 0:
         raise ValueError("Exiftool command did not run successfully.")

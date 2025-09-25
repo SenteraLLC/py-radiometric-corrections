@@ -223,7 +223,7 @@ def get_corrections(
     """
     # Create new `pandas` methods which use `tqdm` progress
     # (can use tqdm_gui, optional kwargs, etc.)
-    tqdm.pandas()
+    tqdm.pandas(unit="image", file=io.TqdmToLogger(logger))
 
     logger.info("ILS corrections: %s", "Disabled" if no_ils_correct else "Enabled")
 
