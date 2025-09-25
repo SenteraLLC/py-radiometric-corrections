@@ -1,7 +1,7 @@
 # Sentera Radiometric Corrections
 Tool to perform various corrections on imagery from supported sensors, including Sentera 6X, Sentera Double 4K and DJI Mavic 3 Multispectral.
 #### Installation
-To install the Sentera Radiometric Corrections app, download the Sentera Radiometric Corrections GUI.zip file from the latest release on the homepage.  After downloading, extract the files and run the executable file.
+To install the Sentera Radiometric Corrections app, download the `Sentera Radiometric Corrections GUI.zip` file from the latest release on the homepage.  After downloading, extract the files and run the executable file.
 
 
 <p align="center"><img width="602" height="532" alt="image" src="https://github.com/user-attachments/assets/acd53b21-6dfd-4f37-a6e3-269c3bc2a764" /></p>
