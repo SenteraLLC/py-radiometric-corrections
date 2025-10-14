@@ -64,11 +64,13 @@ def convert_thermal(input_path, output_path, exiftool_path):
                     "-all",
                     output_image_path,
                 ]
-                results = subprocess.run(
-                    command,
-                    capture_output=True,
-                    creationflags=subprocess.CREATE_NO_WINDOW,
-                )
+
+                # Use CREATE_NO_WINDOW flag on Windows if available (Python 3.7+)
+                kwargs = {"capture_output": True}
+                if hasattr(subprocess, "CREATE_NO_WINDOW"):
+                    kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+
+                results = subprocess.run(command, **kwargs)
                 if results.returncode != 0:
                     raise ValueError("Exiftool command did not run successfully.")
 
