@@ -43,6 +43,7 @@ class CorrectImagesApp(tk.Tk):
         except Exception:
             self.iconbitmap("sentera_radiometric_corrections_icon.ico")
         self.create_widgets()
+        self.grid_columnconfigure(1, weight=1)
 
     def create_widgets(self):
         row = 0
@@ -51,12 +52,12 @@ class CorrectImagesApp(tk.Tk):
         )
         self.input_path_var = tk.StringVar()
         tk.Entry(
-            self, textvariable=self.input_path_var, width=90, justify="right"
-        ).grid(row=row, column=1, sticky="e")
+            self, textvariable=self.input_path_var, width=90
+        ).grid(row=row, column=1, sticky="ew")
         self.browse_input_button = tk.Button(
             self, text="Browse", command=self.browse_input
         )
-        self.browse_input_button.grid(row=row, column=2)
+        self.browse_input_button.grid(row=row, column=2, sticky="ew", padx=(0, 5))
         row += 1
 
         tk.Label(self, text="Output Path").grid(
@@ -64,13 +65,13 @@ class CorrectImagesApp(tk.Tk):
         )
         self.output_path_var = tk.StringVar()
         self.output_path_text = tk.Entry(
-            self, textvariable=self.output_path_var, width=90, justify="right"
+            self, textvariable=self.output_path_var, width=90
         )
-        self.output_path_text.grid(row=row, column=1, sticky="e")
+        self.output_path_text.grid(row=row, column=1, sticky="ew")
         self.browse_output_button = tk.Button(
             self, text="Browse", command=self.browse_output
         )
-        self.browse_output_button.grid(row=row, column=2)
+        self.browse_output_button.grid(row=row, column=2, sticky="w", padx=(0, 5))
         row += 1
 
         self.reflectance_var = tk.BooleanVar(value=True)
@@ -98,13 +99,13 @@ class CorrectImagesApp(tk.Tk):
         self.exiftool_path_label = tk.Label(self, text="ExifTool Path (optional)")
         self.exiftool_path_label.grid(row=row, column=0, sticky="w", padx=(15, 0))
         self.exiftool_entry = tk.Entry(
-            self, textvariable=self.exiftool_path_var, width=90, justify="right"
+            self, textvariable=self.exiftool_path_var, width=90
         )
-        self.exiftool_entry.grid(row=row, column=1, sticky="e")
+        self.exiftool_entry.grid(row=row, column=1, sticky="ew")
         self.exiftool_path_browse_button = tk.Button(
             self, text="Browse", command=self.browse_exiftool
         )
-        self.exiftool_path_browse_button.grid(row=row, column=2)
+        self.exiftool_path_browse_button.grid(row=row, column=2, padx=(0, 5))
         row += 1
 
         self.calibration_id_var = tk.StringVar(value="CAL")
