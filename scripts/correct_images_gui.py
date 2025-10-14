@@ -35,7 +35,9 @@ class CorrectImagesApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Sentera Radiometric Corrections")
-        self.geometry("800x500")
+        self.geometry("600x500")
+        self.resizable(True, False)  # Allow horizontal resize, disable vertical resize
+        self.minsize(600, 500)  # Set minimum width to 600px, height to 500px
         try:
             self.iconbitmap(
                 os.path.join(sys._MEIPASS, "sentera_radiometric_corrections_icon.ico")
@@ -44,6 +46,7 @@ class CorrectImagesApp(tk.Tk):
             self.iconbitmap("sentera_radiometric_corrections_icon.ico")
         self.create_widgets()
         self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(10, weight=1)  # Make the output text box row expandable
 
     def create_widgets(self):
         row = 0
@@ -159,7 +162,7 @@ class CorrectImagesApp(tk.Tk):
         # Output text box
         self.output_text = tk.Text(self, height=10, width=70)
         self.output_text.grid(
-            row=row, column=0, sticky="ew", columnspan=3, padx=(15, 15)
+            row=row, column=0, sticky="nsew", columnspan=3, padx=(15, 15), pady=(0, 15)
         )
 
     def toggle_advanced_options(self):
