@@ -51,9 +51,9 @@ class CorrectImagesApp(tk.Tk):
             row=row, column=0, sticky="w", padx=(15, 0)
         )
         self.input_path_var = tk.StringVar()
-        tk.Entry(
-            self, textvariable=self.input_path_var, width=90
-        ).grid(row=row, column=1, sticky="ew")
+        tk.Entry(self, textvariable=self.input_path_var, width=90).grid(
+            row=row, column=1, sticky="ew"
+        )
         self.browse_input_button = tk.Button(
             self, text="Browse", command=self.browse_input
         )
