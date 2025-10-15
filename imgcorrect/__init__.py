@@ -10,6 +10,7 @@ from imgcorrect.corrections import (
     correct_images,
 )
 from imgcorrect.io import (
+    TqdmToLogger,
     apply_sensor_settings,
     create_cal_df,
     create_image_df,
@@ -34,4 +35,5 @@ __all__ = [
     "move_corrected_images",
     "write_image",
     "copy_exif",
+    "TqdmToLogger",
 ]

@@ -19,6 +19,7 @@ dependencies:
   - tqdm
   - imageio
   - imagecodecs
+  - tk
   # subpackage dependencies
   # Sentera dependencies
   - pip:

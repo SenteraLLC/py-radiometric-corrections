@@ -1,4 +1,5 @@
 """Processing for 6x thermal imagery."""
+
 import logging
 import os
 import shutil
@@ -8,6 +9,8 @@ import tempfile
 import imageio
 import numpy as np
 from tqdm import tqdm
+
+from imgcorrect.io import TqdmToLogger
 
 ## 12-bit support requires pip install imagecodecs
 
@@ -28,7 +31,7 @@ def convert_thermal(input_path, output_path, exiftool_path):
     logger.info("Converting LWIR images from CentiKelvin(uint16) to Celsius(float32)")
     with tempfile.TemporaryDirectory() as temp_dir:
         # copy image to output location
-        for image in tqdm(images):
+        for image in tqdm(images, unit="image", file=TqdmToLogger(logger)):
 
             if "CAL" not in image:
                 # Copy image to temporary directory
@@ -61,7 +64,13 @@ def convert_thermal(input_path, output_path, exiftool_path):
                     "-all",
                     output_image_path,
                 ]
-                results = subprocess.run(command, capture_output=True)
+
+                # Use CREATE_NO_WINDOW flag on Windows if available (Python 3.7+)
+                kwargs = {"capture_output": True}
+                if hasattr(subprocess, "CREATE_NO_WINDOW"):
+                    kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+
+                results = subprocess.run(command, **kwargs)
                 if results.returncode != 0:
                     raise ValueError("Exiftool command did not run successfully.")
 

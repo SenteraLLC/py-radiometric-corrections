@@ -201,3 +201,22 @@ def write_corrections_csv(image_df, cal_df, file):
         (lambda x: os.path.relpath(x, base_dir))
     )
     csv_df.to_csv(file, index=False)
+
+
+class TqdmToLogger:
+    """Redirect tqdm output to a logger instance."""
+
+    def __init__(self, logger, level=logging.INFO):
+        """Initialize instance."""
+        self.logger = logger
+        self.level = level
+
+    def write(self, msg):
+        """Write message to logger."""
+        msg = msg.strip()
+        if msg:
+            self.logger.log(self.level, msg)
+
+    def flush(self):
+        """No-op for flush method."""
+        pass
