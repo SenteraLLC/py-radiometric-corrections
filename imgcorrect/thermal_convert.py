@@ -22,6 +22,8 @@ def convert_thermal(input_path, output_path, exiftool_path):
     if not os.path.exists(output_path):
         os.mkdir(output_path)
 
+    overwrite = False if input_path != output_path else True
+
     images = [
         f
         for f in os.listdir(input_path)
@@ -89,3 +91,7 @@ def convert_thermal(input_path, output_path, exiftool_path):
                             logger.info("additional file deleted")
                         except Exception as e:
                             logger.error(f"File delete failed with error {e}")
+
+            else:
+                if overwrite:
+                    os.remove(os.path.join(output_path, image))
