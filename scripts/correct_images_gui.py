@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 
 from imgcorrect import corrections
+from imgcorrect._version import __version__ as imgcorrect_version
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class TextHandler(logging.Handler):
 class CorrectImagesApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Sentera Radiometric Corrections")
+        self.title(f"Sentera Radiometric Corrections v{imgcorrect_version}")
         self.geometry("600x500")
         self.resizable(True, False)  # Allow horizontal resize, disable vertical resize
         self.minsize(600, 500)  # Set minimum width to 600px, height to 500px
@@ -255,7 +256,10 @@ class CorrectImagesApp(tk.Tk):
         if self.exiftool_path_var.get():
             exiftool_path = self.exiftool_path_var.get()
         else:
-            exiftool_path = os.path.join(sys._MEIPASS, "exiftool.exe")
+            try:
+                exiftool_path = os.path.join(sys._MEIPASS, "exiftool.exe")
+            except Exception:
+                exiftool_path = "exiftool/exiftool.exe"
         uint16_output = self.uint16_var.get()
 
         self.output_text.delete(1.0, tk.END)
@@ -263,6 +267,12 @@ class CorrectImagesApp(tk.Tk):
         os.makedirs(self.output_path_var.get(), exist_ok=True)
 
         def run_corrections():
+            # Clear existing handlers to prevent duplicates
+            root_logger = logging.getLogger()
+            for handler in root_logger.handlers[:]:
+                if isinstance(handler, TextHandler):
+                    root_logger.removeHandler(handler)
+
             handler = TextHandler(self.output_text)
             logging.basicConfig(
                 filename=os.path.join(
@@ -271,9 +281,10 @@ class CorrectImagesApp(tk.Tk):
                 ),
                 level=logging.INFO,
                 format="%(asctime)s %(levelname)s:%(message)s",
+                force=True,  # This recreates the basic config
             )
-            logging.getLogger().addHandler(handler)
-            logger.info("Running Corrections")
+            root_logger.addHandler(handler)
+            logger.info(f"Running Corrections - v{imgcorrect_version}")
             logger.info(f"Input Path: {input_path}")
             logger.info(f"Output Path: {output_path}")
             logger.info(f"ExifTool Path: {exiftool_path}")
@@ -283,19 +294,22 @@ class CorrectImagesApp(tk.Tk):
             logger.info(f"All Panels: {all_panels}")
             logger.info(f"Delete Original: {delete_original}")
             logger.info(f"UInt16 Output: {uint16_output}")
-            corrections.correct_images(
-                input_path,
-                calibration_id,
-                output_path,
-                no_ils_correct,
-                no_reflectance_correct,
-                all_panels,
-                delete_original,
-                exiftool_path,
-                uint16_output,
-            )
+            try:
+                corrections.correct_images(
+                    input_path,
+                    calibration_id,
+                    output_path,
+                    no_ils_correct,
+                    no_reflectance_correct,
+                    all_panels,
+                    delete_original,
+                    exiftool_path,
+                    uint16_output,
+                )
+                logger.info("Corrections complete!")
+            except Exception as e:
+                logger.error(f"Error during correction: {e}")
             self.enable_buttons()
-            logger.info("Corrections complete!")
 
         threading.Thread(target=run_corrections, daemon=True).start()
 
