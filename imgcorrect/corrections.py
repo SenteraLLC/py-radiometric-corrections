@@ -352,7 +352,7 @@ def correct_images(
     if not input_folders:
         if "lwir" in os.path.split(input_path)[1].lower():
             lwir_folder_path = input_path
-        lwir_only = True
+            lwir_only = True
     else:
         for folder in input_folders:
             if "lwir" in folder.lower():
