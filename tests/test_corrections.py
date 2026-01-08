@@ -55,3 +55,17 @@ def test_d4k_ils():
         "exiftool",
         False,
     )
+
+
+def test_m3m_ils():
+    imgcorrect.correct_images(
+        "tests/m3m_images/",
+        "CAL",
+        "tests/output/m3m_ils/",
+        False,
+        False,
+        False,
+        False,
+        "exiftool",
+        False,
+    )
