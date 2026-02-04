@@ -74,10 +74,10 @@ def extract_panel_bounds(image):
         top_aruco_line = corners[0][0][0] - corners[0][0][3]
         top_aruco_line_middle = top_aruco_line / 2.0 + corners[0][0][3]
 
-        # panels with markers of id:63 or 217 are incorrectly oriented
+        # panels with markers of id:63 are incorrectly oriented
         # in this case, panel is beneath marker
-        if ids[0][0] == 63 or ids[0][0] == 217:
-            logger.info("Aruco ID: %d detected. Adjusting for panel beneath marker.", ids[0][0])
+        if ids[0][0] == 63:
+            logger.info("Aruco ID: 63 detected. Adjusting for panel beneath marker.")
             top_aruco_line = corners[0][0][3] - corners[0][0][2]
             top_aruco_line_middle = top_aruco_line / 2.0 + corners[0][0][2]
 
