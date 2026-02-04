@@ -41,49 +41,45 @@ def compute_ils_correction(image_df):
     return image_df.drop(columns=["averaged_ILS"])
 
 
-def compute_reflectance_correction(
-    image_df, calibration_df, ils_present, all_panels=False
-):
-    """Compute coefficient that will scale output values to known panel reflectance."""
+def _get_band_coeff(row):
+    """Get band coefficient based on aruco marker ID."""
+    aruco_to_coeffs = {
+        23: zenith_co.sg3144_batch1_coefficients,
+        63: zenith_co.sg3144_batch2_coefficients,
+        217: zenith_co.sg3144_batch3_coefficients,
+    }
 
-    def _get_band_coeff(row):
-        if row["aruco_id"] == 23:
-            coeffs = zenith_co.sg3144_batch1_coefficients
-        elif row["aruco_id"] == 63:
-            coeffs = zenith_co.sg3144_batch2_coefficients
-        elif row["aruco_id"] == 217:
-            coeffs = zenith_co.sg3144_batch3_coefficients
-        else:
-            raise Exception(
-                f"The detected aruco marker id {row['aruco_id']} is not supported. band: {row['band']}"
-            )
-
-        logger.debug("Detected aruco marker id: %s", {row["aruco_id"]})
-        cent_arr, fwhm_arr = MetadataParser(row.image_path).wavelength_data()
-        cent = int(cent_arr[int(row.XMP_index)])
-        wfhm = int(fwhm_arr[int(row.XMP_index)])
-
-        return np.average(coeffs[cent - wfhm : cent + wfhm + 1])
-
-    def _get_ils_scaling(band_row):
-        parser = MetadataParser(band_row.image_path)
-        if parser.make() == "DJI":
-            try:
-                calibration_img_ils = parser.irradiance()
-            except ParsingError:
-                calibration_img_ils = parser.ils()[0]
-        else:
-            calibration_img_ils = parser.ils()[0]
-        return band_row.ILS / calibration_img_ils
-
-    if calibration_df.empty:
-        raise FileNotFoundError(
-            "No calibration images were found. If not attempting to correct for "
-            "absolute reflectance, set the '--no_reflectance_correct' flag. Otherwise, "
-            "set the calibration image identifier with the '--calibration_id' option."
+    aruco_id = row["aruco_id"]
+    if aruco_id not in aruco_to_coeffs:
+        raise Exception(
+            f"The detected aruco marker id {aruco_id} is not supported. band: {row['band']}"
         )
 
-    # only calculate mean reflectance if it was not calculated previously to find calibration images
+    coeffs = aruco_to_coeffs[aruco_id]
+    logger.debug("Detected aruco marker id: %s", aruco_id)
+
+    cent_arr, fwhm_arr = MetadataParser(row.image_path).wavelength_data()
+    cent = int(cent_arr[int(row.XMP_index)])
+    wfhm = int(fwhm_arr[int(row.XMP_index)])
+
+    return np.average(coeffs[cent - wfhm : cent + wfhm + 1])
+
+
+def _get_ils_scaling(band_row):
+    """Calculate ILS scaling factor."""
+    parser = MetadataParser(band_row.image_path)
+    if parser.make() == "DJI":
+        try:
+            calibration_img_ils = parser.irradiance()
+        except ParsingError:
+            calibration_img_ils = parser.ils()[0]
+    else:
+        calibration_img_ils = parser.ils()[0]
+    return band_row.ILS / calibration_img_ils
+
+
+def _extract_panel_info(calibration_df):
+    """Extract mean reflectance and aruco_id from calibration dataframe."""
     panel_info = calibration_df.apply(
         lambda row: (
             detect_panel.get_reflectance(row)
@@ -96,36 +92,61 @@ def compute_reflectance_correction(
     for row in panel_info:
         if row is not None:
             mean_reflectance.append(row[0]), aruco_id.append(row[1])
+    return mean_reflectance, aruco_id
+
+
+def _select_calibration_set(calibration_df, image_df):
+    """Select the best calibration set based on ILS matching."""
+    from datetime import timedelta
+
+    group_ids = (
+        calibration_df["timestamp"]
+        > (calibration_df["timestamp"].shift() + timedelta(seconds=10))
+    ).cumsum()
+    calibration_sets = calibration_df.groupby(group_ids)
+
+    try:
+        band_avg_ils = image_df.groupby("band").ILS.mean().reset_index()
+        min_diff = None
+        min_diff_id = None
+        for set_id, cal_set in calibration_sets:
+            set_avg_ils = cal_set.groupby("band").ILS.mean().reset_index()
+            diff = (band_avg_ils["ILS"] - set_avg_ils["ILS"]).abs().sum()
+            if min_diff is None or diff < min_diff:
+                min_diff = diff
+                min_diff_id = set_id
+        selected_group_id = min_diff_id
+    except Exception:
+        selected_group_id = 0
+
+    return (
+        calibration_sets.get_group(selected_group_id),
+        calibration_sets,
+        selected_group_id,
+    )
+
+
+def compute_reflectance_correction(
+    image_df, calibration_df, ils_present, all_panels=False
+):
+    """Compute coefficient that will scale output values to known panel reflectance."""
+    if calibration_df.empty:
+        raise FileNotFoundError(
+            "No calibration images were found. If not attempting to correct for "
+            "absolute reflectance, set the '--no_reflectance_correct' flag. Otherwise, "
+            "set the calibration image identifier with the '--calibration_id' option."
+        )
+
+    # Extract mean reflectance and aruco_id
+    mean_reflectance, aruco_id = _extract_panel_info(calibration_df)
     calibration_df["mean_reflectance"] = mean_reflectance
     calibration_df["aruco_id"] = aruco_id
 
-    # Split calibration images into groups wherever 10+ seconds pass between timestamps
-    from datetime import timedelta
-
+    # Select calibration set
     if not all_panels:
-        group_ids = (
-            calibration_df["timestamp"]
-            > (calibration_df["timestamp"].shift() + timedelta(seconds=10))
-        ).cumsum()
-        calibration_sets = calibration_df.groupby(group_ids)
-
-        # Narrow down calibration_df to just one calibration set
-        try:
-            band_avg_ils = image_df.groupby("band").ILS.mean().reset_index()
-            min_diff = None
-            min_diff_id = None
-            for set_id, cal_set in calibration_sets:
-                set_avg_ils = cal_set.groupby("band").ILS.mean().reset_index()
-                diff = (band_avg_ils["ILS"] - set_avg_ils["ILS"]).abs().sum()
-                if min_diff is None or diff < min_diff:
-                    min_diff = diff
-                    min_diff_id = set_id
-
-            selected_group_id = min_diff_id
-        except Exception:
-            selected_group_id = 0
-
-        calibration_df = calibration_sets.get_group(selected_group_id)
+        calibration_df, calibration_sets, selected_group_id = _select_calibration_set(
+            calibration_df, image_df
+        )
         logger.info(
             "Using calibration set with ID %s for reflectance correction.",
             selected_group_id,
