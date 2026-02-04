@@ -51,6 +51,8 @@ def compute_reflectance_correction(
             coeffs = zenith_co.sg3144_batch1_coefficients
         elif row["aruco_id"] == 63:
             coeffs = zenith_co.sg3144_batch2_coefficients
+        elif row["aruco_id"] == 217:
+            coeffs = zenith_co.sg3144_batch3_coefficients
         else:
             raise Exception(
                 f"The detected aruco marker id {row['aruco_id']} is not supported. band: {row['band']}"
