@@ -16,7 +16,7 @@ jobs:
 
       - name: Install Exiftool
         run: |
-          wget https://exiftool.org/Image-ExifTool-13.49.tar.gz
+          wget https://exiftool.org/Image-ExifTool-13.50.tar.gz
           gzip -dc Image-ExifTool-13.50.tar.gz | tar -xf -
           cd Image-ExifTool-13.50
           perl Makefile.PL
