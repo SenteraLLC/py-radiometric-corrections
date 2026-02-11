@@ -1,3 +1,8 @@
+"""This script processes images in a specified input folder, detects panel bounding boxes using the `extract_panel_bounds` function, and saves the
+results with bounding boxes drawn in an output folder.
+The script is designed to handle images from supported sensors and can process multiple images organized in sub-folders.
+"""
+
 import argparse
 import os
 
