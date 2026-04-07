@@ -1,12 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from PyInstaller.utils.hooks import copy_metadata
+
 block_cipher = None
+
+metadata_datas = copy_metadata('imageio') + copy_metadata('imgcorrect')
 
 
 a = Analysis(['scripts\\correct_images_gui.py'],
              pathex=['.'],
              binaries=[],
-             datas=[('exiftool/exiftool.exe', '.'), ('cfg/exiftool.cfg', 'cfg'), ('cfg/reg_config.ini', 'cfg'), ('sentera_radiometric_corrections_icon.ico', '.')],
+             datas=[('exiftool/exiftool.exe', '.'), ('cfg/exiftool.cfg', 'cfg'), ('cfg/reg_config.ini', 'cfg'), ('sentera_radiometric_corrections_icon.ico', '.')] + metadata_datas,
              hiddenimports=['pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],

@@ -38,6 +38,6 @@ jobs:
       - name: Test EXEs
         shell: pwsh
         run: |
-          dist/ImageryCorrector.exe tests/6x_images --output_folder dist/6x_images_test_output
-          dist/GetCorrectionsCsv.exe tests/6x_images --output_folder dist/6x_images_test_output_csv
+          dist/ImageryCorrector.exe tests/6x_images --output_path dist/6x_images_test_output
+          dist/GetCorrectionsCsv.exe tests/6x_images --output_path dist/6x_images_test_output_csv
 
