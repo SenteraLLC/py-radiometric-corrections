@@ -406,7 +406,7 @@ files = [
 
 [[package]]
 name = "imgparse"
-version = "2.0.4"
+version = "2.0.10"
 description = "Python image-metadata-parser utilities"
 optional = false
 python-versions = "^3.10"
@@ -426,8 +426,8 @@ s3 = ["boto3", "s3path"]
 [package.source]
 type = "git"
 url = "https://github.com/SenteraLLC/py-image-metadata-parser.git"
-reference = "v2.0.4"
-resolved_reference = "a4afca93759608f96e088be25187f3e6aa0ca650"
+reference = "v2.0.10"
+resolved_reference = "803240c5b9b416ab97be247a1ec31c8616d5d46c"
 
 [[package]]
 name = "iniconfig"
@@ -1450,4 +1450,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "46f711a31b416d3a2e13e5f7334f302b7e0fc7585c645cc78370c14bad3aafb8"
+content-hash = "7e9583f6de50fef9d5c67ea21fe2d7f1f7a3d3cd3b52ff4e1038db4a77a606b4"
