@@ -89,7 +89,8 @@ def apply_sensor_settings(image_df):
         # remove images that don't appear in every band
         new_image_df = new_image_df[new_image_df.ID.isin(v.index[v.eq(band_count)])]
         logger.info(
-            f"Skipping {images_before_filtering - len(new_image_df.index)} images because they don't have data for all bands"
+            "Skipping %s images because they don't have data for all bands",
+            images_before_filtering - len(new_image_df.index),
         )
 
         return new_image_df
