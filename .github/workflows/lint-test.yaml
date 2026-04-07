@@ -2,7 +2,7 @@ name: Lint and Test
 on:
   push:
     branches-ignore:
-      [master]
+      [main]
 
 jobs:
   lint:
