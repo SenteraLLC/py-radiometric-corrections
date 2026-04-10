@@ -45,6 +45,15 @@ jobs:
           pyinstaller get_corrections_onefile.spec --noconfirm --clean
           pyinstaller correct_images_gui_onefile.spec --noconfirm --clean
 
+      - name: Create zip files
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          zip -r dist/ImageryCorrector.zip dist/ImageryCorrector.exe
+          zip -r dist/GetCorrectionsCsv.zip dist/GetCorrectionsCsv.exe
+          zip -r dist/SenteraRadiometricCorrectionsGUI.zip dist/SenteraRadiometricCorrectionsGUI.exe
+
+          
+
       - name: Define TAG
         shell: pwsh
         run: |
@@ -58,6 +67,6 @@ jobs:
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           files: |
-            dist/ImageryCorrector.exe
-            dist/GetCorrectionsCsv.exe
-            dist/Sentera Radiometric Corrections GUI.exe
+            dist/ImageryCorrector.zip
+            dist/GetCorrectionsCsv.zip
+            dist/SenteraRadiometricCorrectionsGUI.zip
