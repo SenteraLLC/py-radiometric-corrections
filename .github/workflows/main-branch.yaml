@@ -46,11 +46,17 @@ jobs:
           pyinstaller correct_images_gui_onefile.spec --noconfirm --clean
 
       - name: Create zip files
+        shell: pwsh
         run: |
-          cd "$GITHUB_WORKSPACE"
-          zip -r dist/ImageryCorrector.zip dist/ImageryCorrector.exe
-          zip -r dist/GetCorrectionsCsv.zip dist/GetCorrectionsCsv.exe
-          zip -r dist/SenteraRadiometricCorrectionsGUI.zip dist/SenteraRadiometricCorrectionsGUI.exe
+          Set-Location $env:GITHUB_WORKSPACE
+
+          if (Test-Path "dist/ImageryCorrector.zip") { Remove-Item "dist/ImageryCorrector.zip" }
+          if (Test-Path "dist/GetCorrectionsCsv.zip") { Remove-Item "dist/GetCorrectionsCsv.zip" }
+          if (Test-Path "dist/SenteraRadiometricCorrectionsGUI.zip") { Remove-Item "dist/SenteraRadiometricCorrectionsGUI.zip" }
+
+          Compress-Archive -Path "dist/ImageryCorrector.exe" -DestinationPath "dist/ImageryCorrector.zip"
+          Compress-Archive -Path "dist/GetCorrectionsCsv.exe" -DestinationPath "dist/GetCorrectionsCsv.zip"
+          Compress-Archive -Path "dist/SenteraRadiometricCorrectionsGUI.exe" -DestinationPath "dist/SenteraRadiometricCorrectionsGUI.zip"
 
           
 
