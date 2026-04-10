@@ -46,11 +46,18 @@ jobs:
           pyinstaller correct_images_gui_onefile.spec --noconfirm --clean
 
       - name: Create zip files
+        shell: pwsh
         run: |
-          cd "$GITHUB_WORKSPACE"
-          zip -r dist/ImageryCorrector.zip dist/ImageryCorrector.exe
-          zip -r dist/GetCorrectionsCsv.zip dist/GetCorrectionsCsv.exe
-          zip -r dist/SenteraRadiometricCorrectionsGUI.zip dist/SenteraRadiometricCorrectionsGUI.exe
+          Set-Location $env:GITHUB_WORKSPACE
+          $version = "${{ steps.read_toml.outputs.value }}"
+
+          if (Test-Path "dist/ImageryCorrector-$version.zip") { Remove-Item "dist/ImageryCorrector-$version.zip" }
+          if (Test-Path "dist/GetCorrectionsCsv-$version.zip") { Remove-Item "dist/GetCorrectionsCsv-$version.zip" }
+          if (Test-Path "dist/SenteraRadiometricCorrectionsGUI-$version.zip") { Remove-Item "dist/SenteraRadiometricCorrectionsGUI-$version.zip" }
+
+          Compress-Archive -Path "dist/ImageryCorrector.exe" -DestinationPath "dist/ImageryCorrector-$version.zip"
+          Compress-Archive -Path "dist/GetCorrectionsCsv.exe" -DestinationPath "dist/GetCorrectionsCsv-$version.zip"
+          Compress-Archive -Path "dist/SenteraRadiometricCorrectionsGUI.exe" -DestinationPath "dist/SenteraRadiometricCorrectionsGUI-$version.zip"
 
           
 
@@ -67,6 +74,6 @@ jobs:
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           files: |
-            dist/ImageryCorrector.zip
-            dist/GetCorrectionsCsv.zip
-            dist/SenteraRadiometricCorrectionsGUI.zip
+            dist/ImageryCorrector-${{ steps.read_toml.outputs.value }}.zip
+            dist/GetCorrectionsCsv-${{ steps.read_toml.outputs.value }}.zip
+            dist/SenteraRadiometricCorrectionsGUI-${{ steps.read_toml.outputs.value }}.zip
