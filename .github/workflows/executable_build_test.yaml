@@ -1,0 +1,44 @@
+name: Build and Test Executables
+on:
+  push:
+    branches-ignore:
+      [main]
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Build and Test Executables
+    runs-on: windows-2022
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install .
+
+      - name: Build EXEs
+        shell: pwsh
+        run: |
+          pyinstaller correct_images_onefile.spec --noconfirm --clean
+          pyinstaller get_corrections_onefile.spec --noconfirm --clean
+
+      - name: Test EXEs
+        shell: pwsh
+        run: |
+          dist/ImageryCorrector.exe tests/6x_images --output_path dist/6x_images_test_output
+          dist/GetCorrectionsCsv.exe tests/6x_images --output_path dist/6x_images_test_output_csv
+

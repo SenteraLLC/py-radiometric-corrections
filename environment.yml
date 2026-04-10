@@ -23,4 +23,4 @@ dependencies:
   # subpackage dependencies
   # Sentera dependencies
   - pip:
-    - git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v2.0.4
+    - git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v2.0.10

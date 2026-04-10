@@ -334,6 +334,9 @@ def get_corrections(
                     ]
                 )
                 return 1 / sensitivity
+            elif "drone-dji:SensorGainAdjustment" in xmp:
+                gain_adj = float(xmp["drone-dji:SensorGainAdjustment"])
+                return gain_adj
             else:
                 return 1
 

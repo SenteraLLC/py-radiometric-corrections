@@ -1,12 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from PyInstaller.utils.hooks import copy_metadata
+
 block_cipher = None
+
+metadata_datas = copy_metadata('imageio') + copy_metadata('imgcorrect')
 
 
 a = Analysis(['scripts\\get_corrections.py'],
              pathex=['.'],
              binaries=[],
-             datas=[('exiftool/exiftool.exe', '.'), ('cfg/exiftool.cfg', 'cfg'), ('cfg/reg_config.ini', 'cfg')],
+             datas=[('exiftool/exiftool.exe', '.'), ('cfg/exiftool.cfg', 'cfg'), ('cfg/reg_config.ini', 'cfg')] + metadata_datas,
              hiddenimports=['pkg_resources.py2_warn'],
              hookspath=[],
              runtime_hooks=[],
