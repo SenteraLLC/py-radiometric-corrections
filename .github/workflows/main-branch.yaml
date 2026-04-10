@@ -49,14 +49,15 @@ jobs:
         shell: pwsh
         run: |
           Set-Location $env:GITHUB_WORKSPACE
+          $version = "${{ steps.read_toml.outputs.value }}"
 
-          if (Test-Path "dist/ImageryCorrector.zip") { Remove-Item "dist/ImageryCorrector.zip" }
-          if (Test-Path "dist/GetCorrectionsCsv.zip") { Remove-Item "dist/GetCorrectionsCsv.zip" }
-          if (Test-Path "dist/SenteraRadiometricCorrectionsGUI.zip") { Remove-Item "dist/SenteraRadiometricCorrectionsGUI.zip" }
+          if (Test-Path "dist/ImageryCorrector-$version.zip") { Remove-Item "dist/ImageryCorrector-$version.zip" }
+          if (Test-Path "dist/GetCorrectionsCsv-$version.zip") { Remove-Item "dist/GetCorrectionsCsv-$version.zip" }
+          if (Test-Path "dist/SenteraRadiometricCorrectionsGUI-$version.zip") { Remove-Item "dist/SenteraRadiometricCorrectionsGUI-$version.zip" }
 
-          Compress-Archive -Path "dist/ImageryCorrector.exe" -DestinationPath "dist/ImageryCorrector.zip"
-          Compress-Archive -Path "dist/GetCorrectionsCsv.exe" -DestinationPath "dist/GetCorrectionsCsv.zip"
-          Compress-Archive -Path "dist/SenteraRadiometricCorrectionsGUI.exe" -DestinationPath "dist/SenteraRadiometricCorrectionsGUI.zip"
+          Compress-Archive -Path "dist/ImageryCorrector.exe" -DestinationPath "dist/ImageryCorrector-$version.zip"
+          Compress-Archive -Path "dist/GetCorrectionsCsv.exe" -DestinationPath "dist/GetCorrectionsCsv-$version.zip"
+          Compress-Archive -Path "dist/SenteraRadiometricCorrectionsGUI.exe" -DestinationPath "dist/SenteraRadiometricCorrectionsGUI-$version.zip"
 
           
 
@@ -73,6 +74,6 @@ jobs:
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           files: |
-            dist/ImageryCorrector.zip
-            dist/GetCorrectionsCsv.zip
-            dist/SenteraRadiometricCorrectionsGUI.zip
+            dist/ImageryCorrector-${{ steps.read_toml.outputs.value }}.zip
+            dist/GetCorrectionsCsv-${{ steps.read_toml.outputs.value }}.zip
+            dist/SenteraRadiometricCorrectionsGUI-${{ steps.read_toml.outputs.value }}.zip
