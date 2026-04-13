@@ -89,8 +89,8 @@ def convert_thermal(input_path, output_path, exiftool_path):
                         try:
                             os.remove(os.path.join(output_path, file))
                             logger.info("additional file deleted")
-                        except Exception as e:
-                            logger.error(f"File delete failed with error {e}")
+                        except Exception:
+                            logger.exception("File delete failed")
 
             else:
                 if overwrite:

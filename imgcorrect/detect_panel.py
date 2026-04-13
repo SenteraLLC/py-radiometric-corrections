@@ -65,7 +65,7 @@ def extract_panel_bounds(image):
     corners, ids, rejected_img_points = cv.aruco.detectMarkers(image, dictionary)
 
     # if at least one marker detected
-    if ids is not None and (ids[0][0] == 23 or ids[0][0] == 63):
+    if ids is not None and (ids[0][0] == 23 or ids[0][0] == 63 or ids[0][0] == 217):
         aruco_side_length_p = cv.norm(corners[0][0][1] - corners[0][0][0])
         gsd = ARUCO_SIDE_LENGTH_M / aruco_side_length_p
         logger.debug("Calibration image GSD: %10.5f m/pixel", gsd)
@@ -76,8 +76,10 @@ def extract_panel_bounds(image):
 
         # panels with markers of id:63 are incorrectly oriented
         # in this case, panel is beneath marker
-        if ids[0][0] == 63:
-            logger.info("Aruco ID: 63 detected. Adjusting for panel beneath marker.")
+        if ids[0][0] == 63 or ids[0][0] == 217:
+            logger.info(
+                "Aruco ID: 63 or 217 detected. Adjusting for panel beneath marker."
+            )
             top_aruco_line = corners[0][0][3] - corners[0][0][2]
             top_aruco_line_middle = top_aruco_line / 2.0 + corners[0][0][2]
 
