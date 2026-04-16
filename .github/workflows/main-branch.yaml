@@ -9,7 +9,7 @@ on:
 jobs:
   release:
     name: Create GitHub Release
-    runs-on: windows-2022
+    runs-on: windows-2025
     permissions:
       contents: write
 
