@@ -9,13 +9,13 @@ on:
 jobs:
   release:
     name: Create GitHub Release
-    runs-on: windows-2025
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
 
@@ -26,54 +26,21 @@ jobs:
           file: 'pyproject.toml'
           field: 'tool.poetry.version'
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        shell: pwsh
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller
-          pip install .
-
-      - name: Build EXEs
-        shell: pwsh
-        run: |
-          pyinstaller correct_images_onefile.spec --noconfirm --clean
-          pyinstaller get_corrections_onefile.spec --noconfirm --clean
-          pyinstaller correct_images_gui_onefile.spec --noconfirm --clean
-
-      - name: Create zip files
-        shell: pwsh
-        run: |
-          Set-Location $env:GITHUB_WORKSPACE
-          $version = "${{ steps.read_toml.outputs.value }}"
-
-          if (Test-Path "dist/ImageryCorrector-$version.zip") { Remove-Item "dist/ImageryCorrector-$version.zip" }
-          if (Test-Path "dist/GetCorrectionsCsv-$version.zip") { Remove-Item "dist/GetCorrectionsCsv-$version.zip" }
-          if (Test-Path "dist/SenteraRadiometricCorrectionsGUI-$version.zip") { Remove-Item "dist/SenteraRadiometricCorrectionsGUI-$version.zip" }
-
-          Compress-Archive -Path "dist/ImageryCorrector.exe" -DestinationPath "dist/ImageryCorrector-$version.zip"
-          Compress-Archive -Path "dist/GetCorrectionsCsv.exe" -DestinationPath "dist/GetCorrectionsCsv-$version.zip"
-          Compress-Archive -Path "dist/SenteraRadiometricCorrectionsGUI.exe" -DestinationPath "dist/SenteraRadiometricCorrectionsGUI-$version.zip"
-
-          
-
       - name: Define TAG
-        shell: pwsh
         run: |
-          "TAG=v${{ steps.read_toml.outputs.value }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
+          export VERSION="${{ steps.read_toml.outputs.value }}"
+          echo "TAG=v$VERSION" >> $GITHUB_ENV
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: actions/github-script@v6
         with:
-          tag_name: ${{ env.TAG }}
-          name: ${{ env.TAG }}
-          target_commitish: ${{ github.sha }}
-          generate_release_notes: true
-          files: |
-            dist/ImageryCorrector-${{ steps.read_toml.outputs.value }}.zip
-            dist/GetCorrectionsCsv-${{ steps.read_toml.outputs.value }}.zip
-            dist/SenteraRadiometricCorrectionsGUI-${{ steps.read_toml.outputs.value }}.zip
+          result-encoding: string
+          retries: 3
+          script: |
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: process.env.TAG,
+              target_commitish: context.sha,
+              name: process.env.TAG,
+              generate_release_notes: true
+            })
