@@ -10,10 +10,17 @@ logger = logging.getLogger(__name__)
 
 def copy_exif(image_df_row, exiftool_path):
     """Copy image metadata with necessary changes from original image to corrected image."""
+    parser = MetadataParser(image_df_row.image_path)
+
     command = [
         exiftool_path,
-        "-config",
-        "cfg/exiftool.cfg",
+    ]
+    make = parser.make()
+    if make == "DJI":
+        command += ["-config", "cfg/dji.cfg"]
+    elif make == "Sentera":
+        command += ["-config", "cfg/exiftool.cfg"]
+    command += [
         "-overwrite_original",
         "-TagsFromFile",
         image_df_row.image_path,
@@ -25,7 +32,6 @@ def copy_exif(image_df_row, exiftool_path):
         "-xmp-Camera:BlackCurrent=0",
     ]
     if image_df_row.reduce_xmp:
-        parser = MetadataParser(image_df_row.image_path)
         cent_arr, fwhm_arr = parser.wavelength_data()
         band_arr = parser.bandnames()
         i = int(image_df_row.XMP_index)
