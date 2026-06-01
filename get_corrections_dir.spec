@@ -1,11 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import importlib.metadata
 from PyInstaller.utils.hooks import copy_metadata
 
 block_cipher = None
 
 metadata_datas = copy_metadata('imageio') + copy_metadata('imgcorrect')
 
+version = importlib.metadata.version('imgcorrect')
 
 a = Analysis(['scripts\\get_corrections.py'],
     pathex=['.'],
@@ -26,7 +28,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='GetCorrectionsCsv',
+    name=f'GetCorrectionsCsv_{version}',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -41,5 +43,5 @@ coll = COLLECT(
     strip=False,
     upx=False,
     upx_exclude=[],
-    name='GetCorrectionsCsv',
+    name=f'GetCorrectionsCsv_{version}',
 )

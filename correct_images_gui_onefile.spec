@@ -1,10 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import importlib.metadata
 from PyInstaller.utils.hooks import copy_metadata
 
 block_cipher = None
 
 metadata_datas = copy_metadata('imageio') + copy_metadata('imgcorrect')
+
+version = importlib.metadata.version('imgcorrect')
 
 
 a = Analysis(['scripts\\correct_images_gui.py'],
@@ -27,7 +30,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='SenteraRadiometricCorrectionsGUI',
+          name=f'SenteraRadiometricCorrectionsGUI_{version}',
           icon='sentera_radiometric_corrections_icon.ico',
           debug=False,
           bootloader_ignore_signals=False,

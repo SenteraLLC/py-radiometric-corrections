@@ -1,11 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import importlib.metadata
 from PyInstaller.utils.hooks import copy_metadata
 
 block_cipher = None
 
 metadata_datas = copy_metadata('imageio') + copy_metadata('imgcorrect')
 
+version = importlib.metadata.version('imgcorrect')
 
 a = Analysis(['scripts\\correct_images.py'],
     pathex=['.'],
@@ -27,7 +29,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='ImageryCorrector',
+    name=f'ImageryCorrector_{version}',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -42,5 +44,5 @@ coll = COLLECT(
     strip=False,
     upx=False,
     upx_exclude=[],
-    name='ImageryCorrector',
+    name=f'ImageryCorrector_{version}',
 )
