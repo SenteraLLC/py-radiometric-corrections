@@ -10,11 +10,11 @@ import imgcorrect.zenith_co as zenith_co
 
 
 def test_aruco_marker_detection():
-    """Test that all four supported aruco marker IDs (23, 63, 217, 287) can be detected."""
-    dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_1000)
+    """Test that all four supported aruco marker IDs (23, 63, 217, 220) can be detected."""
+    dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250)
 
     # Test all four marker IDs
-    for marker_id in [23, 63, 217, 287]:
+    for marker_id in [23, 63, 217, 220]:
         test_image_path = f"tests/aruco_markers/aruco_{marker_id}.png"
 
         # Skip test if image doesn't exist
