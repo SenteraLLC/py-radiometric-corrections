@@ -10,11 +10,11 @@ import imgcorrect.zenith_co as zenith_co
 
 
 def test_aruco_marker_detection():
-    """Test that all three supported aruco marker IDs (23, 63, 217) can be detected."""
+    """Test that all four supported aruco marker IDs (23, 63, 217, 220) can be detected."""
     dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250)
 
-    # Test all three marker IDs
-    for marker_id in [23, 63, 217]:
+    # Test all four marker IDs
+    for marker_id in [23, 63, 217, 220]:
         test_image_path = f"tests/aruco_markers/aruco_{marker_id}.png"
 
         # Skip test if image doesn't exist
@@ -44,7 +44,7 @@ def test_aruco_marker_detection():
 
 def test_aruco_marker_coefficient_selection():
     """Test that each aruco marker ID maps to the correct coefficient array."""
-    # Test that all three batch coefficients are properly loaded
+    # Test that all four batch coefficients are properly loaded
     assert (
         len(zenith_co.sg3144_batch1_coefficients) > 250
     ), "Batch1 coefficients not loaded properly"
@@ -54,6 +54,9 @@ def test_aruco_marker_coefficient_selection():
     assert (
         len(zenith_co.sg3144_batch3_coefficients) > 250
     ), "Batch3 coefficients not loaded properly"
+    assert (
+        len(zenith_co.sg3144_batch4_coefficients) > 250
+    ), "Batch4 coefficients not loaded properly"
 
     # Verify they are lists, not tuples (no trailing comma issue)
     assert isinstance(
@@ -65,6 +68,9 @@ def test_aruco_marker_coefficient_selection():
     assert isinstance(
         zenith_co.sg3144_batch3_coefficients, list
     ), "Batch3 should be a list"
+    assert isinstance(
+        zenith_co.sg3144_batch4_coefficients, list
+    ), "Batch4 should be a list"
 
     # Verify the first few non-zero values match expected batch data
     # Batch1 at index 250 should be 0.1239909
@@ -82,6 +88,11 @@ def test_aruco_marker_coefficient_selection():
         abs(zenith_co.sg3144_batch3_coefficients[250] - 0.11927114) < 0.00001
     ), "Batch3 coefficient mismatch"
 
+    # Batch4 at index 250 should be 0.12586513
+    assert (
+        abs(zenith_co.sg3144_batch4_coefficients[250] - 0.12586513) < 0.00001
+    ), "Batch4 coefficient mismatch"
+
     # Verify all coefficients are numeric and non-negative
     for i, coeff in enumerate(zenith_co.sg3144_batch1_coefficients):
         assert isinstance(coeff, (int, float)), f"Batch1[{i}] is not numeric"
@@ -94,6 +105,10 @@ def test_aruco_marker_coefficient_selection():
     for i, coeff in enumerate(zenith_co.sg3144_batch3_coefficients):
         assert isinstance(coeff, (int, float)), f"Batch3[{i}] is not numeric"
         assert coeff >= 0, f"Batch3[{i}] is negative"
+
+    for i, coeff in enumerate(zenith_co.sg3144_batch4_coefficients):
+        assert isinstance(coeff, (int, float)), f"Batch4[{i}] is not numeric"
+        assert coeff >= 0, f"Batch4[{i}] is negative"
 
 
 def test_6x_cal_ils():

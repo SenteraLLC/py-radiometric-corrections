@@ -47,6 +47,7 @@ def _get_band_coeff(row):
         23: zenith_co.sg3144_batch1_coefficients,
         63: zenith_co.sg3144_batch2_coefficients,
         217: zenith_co.sg3144_batch3_coefficients,
+        220: zenith_co.sg3144_batch4_coefficients,
     }
 
     aruco_id = row["aruco_id"]
