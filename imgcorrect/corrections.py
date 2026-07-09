@@ -169,6 +169,12 @@ def compute_reflectance_correction(
     )
 
     if ils_present:
+        if image_df.empty:
+            raise FileNotFoundError(
+                "ILS correction requires non-calibration images to compute the average "
+                "scene ILS, but none were found in the input path. Either include flight "
+                "images alongside the calibration panel images, or disable ILS Correction."
+            )
         band_avg_ils = image_df.groupby("band").ILS.mean().reset_index()
         band_df["ils_scaling_factor"] = band_df.merge(band_avg_ils, on="band").apply(
             _get_ils_scaling, axis=1
