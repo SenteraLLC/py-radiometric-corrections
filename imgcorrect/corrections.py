@@ -176,6 +176,7 @@ def compute_reflectance_correction(
     else:
         band_df["ils_scaling_factor"] = 1
 
+    band_df.to_csv("D:\\Stitching\\Datasets\\CS-25318\\band_df.csv", index=False)
     band_df["slope_coefficient"] = (
         band_df.apply(lambda row: _get_band_coeff(row), axis=1)
         / (band_df.mean_reflectance / band_df.autoexposure)

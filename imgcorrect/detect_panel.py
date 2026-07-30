@@ -64,6 +64,46 @@ def extract_panel_bounds(image):
     dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250)
     corners, ids, rejected_img_points = cv.aruco.detectMarkers(image, dictionary)
 
+    # --- CORE CORRECTION FOR NIR DETECTION ---
+    # 1. Ensure we are working with a clean, single-channel grayscale copy
+    if len(image.shape) == 3:
+        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    else:
+        gray = image.copy()
+
+    # 2. Fix Sentera's dynamic range squash bug across ALL bands
+    if gray.max() > gray.min():
+        gray = cv.normalize(gray, None, 0, 255, cv.NORM_MINMAX)
+
+    # 3. Setup ArUco dictionary and standard parameters
+    try:
+        dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250)
+        parameters = cv.aruco.DetectorParameters_create()
+    except AttributeError:
+        dictionary = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_6X6_250)
+        parameters = cv.aruco.DetectorParameters()
+
+    # --- ATTEMPT 1: Standard Search (Optimized for Red Edge, Red, Green, Blue) ---
+    corners, ids, rejected_img_points = cv.aruco.detectMarkers(
+        gray, dictionary, parameters=parameters
+    )
+
+    # --- ATTEMPT 2: Aggressive Search Fallback (Only triggers if Attempt 1 fails, e.g., NIR) ---
+    if ids is None:
+        # Fine-tune thresholds to look for faint, low-contrast ink borders
+        parameters.adaptiveThreshConstant = 4
+        parameters.adaptiveThreshWinSizeMax = 33
+        parameters.adaptiveThreshWinSizeStep = 5
+
+        # Apply CLAHE local enhancement to pop out the invisible NIR lines
+        clahe = cv.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        enhanced_gray = clahe.apply(gray)
+
+        corners, ids, rejected_img_points = cv.aruco.detectMarkers(
+            enhanced_gray, dictionary, parameters=parameters
+        )
+    # --- END OF CORRECTION CODE ---
+
     # if at least one marker detected
     if ids is not None and (
         ids[0][0] == 23 or ids[0][0] == 63 or ids[0][0] == 217 or ids[0][0] == 220
