@@ -93,6 +93,20 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    if args.save_log:
+        logger.info("Saving log of corrections.")
+        output_path = args.output_path if args.output_path else args.input_path
+        log_path = os.path.join(
+            os.path.split(output_path)[0],
+            f"{os.path.basename(output_path)}_radiometric_corrections.log",
+        )
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s %(levelname)s:%(message)s",
+            handlers=[logging.FileHandler(log_path), logging.StreamHandler()],
+            force=True,  # This recreates the basic config
+        )
+
     if not args.exiftool_path:
         if getattr(sys, "frozen", False):
             # If the application is run as a bundle, the PyInstaller bootloader
@@ -107,19 +121,6 @@ if __name__ == "__main__":
             )
         logger.info(
             "Using bundled executable. Setting ExifTool path to %s", args.exiftool_path
-        )
-
-    if args.save_log:
-        logger.info("Saving log of corrections.")
-        output_path = args.output_path if args.output_path else args.input_path
-        logging.basicConfig(
-            filename=os.path.join(
-                os.path.split(output_path)[0],
-                f"{os.path.basename(output_path)}_radiometric_corrections.log",
-            ),
-            level=logging.INFO,
-            format="%(asctime)s %(levelname)s:%(message)s",
-            force=True,  # This recreates the basic config
         )
 
     correction_args = vars(args).copy()
