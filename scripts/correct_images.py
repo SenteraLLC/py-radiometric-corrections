@@ -84,6 +84,13 @@ if __name__ == "__main__":
         version="%(prog)s v{version}".format(version=__version__),
     )
 
+    parser.add_argument(
+        "--save-log",
+        "-l",
+        action="store_true",
+        help="If selected, a log of the corrections will be saved.",
+    )
+
     args = parser.parse_args()
 
     if not args.exiftool_path:
@@ -102,4 +109,19 @@ if __name__ == "__main__":
             "Using bundled executable. Setting ExifTool path to %s", args.exiftool_path
         )
 
-    corrections.correct_images(**vars(args))
+    if args.save_log:
+        logger.info("Saving log of corrections.")
+        output_path = args.output_path if args.output_path else args.input_path
+        logging.basicConfig(
+            filename=os.path.join(
+                os.path.split(output_path)[0],
+                f"{os.path.basename(output_path)}_radiometric_corrections.log",
+            ),
+            level=logging.INFO,
+            format="%(asctime)s %(levelname)s:%(message)s",
+            force=True,  # This recreates the basic config
+        )
+
+    correction_args = vars(args).copy()
+    correction_args.pop("save_log")
+    corrections.correct_images(**correction_args)
