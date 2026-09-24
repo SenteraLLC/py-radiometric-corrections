@@ -30,8 +30,10 @@ def convert_thermal(input_path, output_path, exiftool_path):
         if os.path.isfile(os.path.join(input_path, f)) and f.endswith(".tif")
     ]
 
+    drive, _ = os.path.splitdrive(output_path)
+    temp_parent = drive + os.sep if drive and drive.upper() != "C:" else None
     logger.info("Converting LWIR images from CentiKelvin(uint16) to Celsius(float32)")
-    with tempfile.TemporaryDirectory() as temp_dir:
+    with tempfile.TemporaryDirectory(dir=temp_parent) as temp_dir:
         # copy image to output location
         for image in tqdm(images, unit="image", file=TqdmToLogger(logger)):
 

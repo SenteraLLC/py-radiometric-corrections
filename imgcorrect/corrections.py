@@ -370,6 +370,8 @@ def correct_images(
 
     The result is applied to each image before the image is re-saved.
     """
+    if output_path is None:
+        output_path = input_path
     # Check for LWIR folder and convert images
     lwir_folder_path = None
     input_folders = [
@@ -404,7 +406,10 @@ def correct_images(
         )
         logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
 
-        with tempfile.TemporaryDirectory() as temp_dir:
+        drive, _ = os.path.splitdrive(output_path)
+        temp_parent = drive + os.sep if drive and drive.upper() != "C:" else None
+
+        with tempfile.TemporaryDirectory(dir=temp_parent) as temp_dir:
             # Apply corrections:
             logger.info("Applying image corrections...")
             image_df = image_df.progress_apply(
@@ -433,7 +438,7 @@ def correct_images(
 
             # Delete input imagery if requested:
             if delete_original:
-                io.delete_all_originals(image_df)
+                io.delete_all_originals(input_path)
 
             # Move output imagery to correct output directory:
             io.move_corrected_images(image_df)
