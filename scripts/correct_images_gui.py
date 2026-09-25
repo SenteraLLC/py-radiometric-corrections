@@ -146,7 +146,7 @@ class CorrectImagesApp(tk.Tk):
         self.uint16_checkbutton.grid(row=row, column=0, sticky="w", padx=15)
         row += 1
 
-        self.lighting_conditions_check_var = tk.BooleanVar()
+        self.lighting_conditions_check_var = tk.BooleanVar(value=True)
         self.lighting_conditions_checkbutton = tk.Checkbutton(
             self,
             text="Lighting Conditions Check",
