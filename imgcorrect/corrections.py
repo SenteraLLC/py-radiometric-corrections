@@ -309,6 +309,11 @@ def get_corrections(
         logger.info("Creating calibration dataframe")
         calibration_df, image_df = io.create_cal_df(image_df, calibration_id)
 
+    if image_df.empty:
+        message = "No flight images found after creating calibration dataframe.  Ensure input image path contains calibration images and flight images."
+        logger.error(message)
+        raise ValueError(message)
+
     # Get ILS correction:
     if not no_ils_correct:
         logger.info("Computing ILS correction")
@@ -370,6 +375,8 @@ def correct_images(
 
     The result is applied to each image before the image is re-saved.
     """
+    if output_path is None:
+        output_path = input_path
     # Check for LWIR folder and convert images
     lwir_folder_path = None
     input_folders = [
@@ -433,7 +440,7 @@ def correct_images(
 
             # Delete input imagery if requested:
             if delete_original:
-                io.delete_all_originals(image_df)
+                io.delete_all_originals(input_path)
 
             # Move output imagery to correct output directory:
             io.move_corrected_images(image_df)

@@ -5,6 +5,7 @@ from typing import NamedTuple, Tuple
 
 import cv2 as cv
 import numpy as np
+import pandas as pd
 from PIL import Image
 
 # Constants
@@ -63,6 +64,46 @@ def extract_panel_bounds(image):
     # v +Y
     dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250)
     corners, ids, rejected_img_points = cv.aruco.detectMarkers(image, dictionary)
+
+    # --- CORE CORRECTION FOR NIR DETECTION ---
+    # 1. Ensure we are working with a clean, single-channel grayscale copy
+    if len(image.shape) == 3:
+        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    else:
+        gray = image.copy()
+
+    # 2. Fix Sentera's dynamic range squash bug across ALL bands
+    if gray.max() > gray.min():
+        gray = cv.normalize(gray, None, 0, 255, cv.NORM_MINMAX)
+
+    # 3. Setup ArUco dictionary and standard parameters
+    try:
+        dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250)
+        parameters = cv.aruco.DetectorParameters_create()
+    except AttributeError:
+        dictionary = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_6X6_250)
+        parameters = cv.aruco.DetectorParameters()
+
+    # --- ATTEMPT 1: Standard Search (Optimized for Red Edge, Red, Green, Blue) ---
+    corners, ids, rejected_img_points = cv.aruco.detectMarkers(
+        gray, dictionary, parameters=parameters
+    )
+
+    # --- ATTEMPT 2: Aggressive Search Fallback (Only triggers if Attempt 1 fails, e.g., NIR) ---
+    if ids is None:
+        # Fine-tune thresholds to look for faint, low-contrast ink borders
+        parameters.adaptiveThreshConstant = 4
+        parameters.adaptiveThreshWinSizeMax = 33
+        parameters.adaptiveThreshWinSizeStep = 5
+
+        # Apply CLAHE local enhancement to pop out the invisible NIR lines
+        clahe = cv.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        enhanced_gray = clahe.apply(gray)
+
+        corners, ids, rejected_img_points = cv.aruco.detectMarkers(
+            enhanced_gray, dictionary, parameters=parameters
+        )
+    # --- END OF CORRECTION CODE ---
 
     # if at least one marker detected
     if ids is not None and (
@@ -164,3 +205,33 @@ def get_reflectance(row):
 
         logger.info("Mean DN: %10.5f", mean_reflectance_digital_number)
         return mean_reflectance_digital_number, panel.aruco_id
+
+
+def detect_calibration_panels(cal_df):
+    """Detect if QR code is present in calibration panel images and return True/False check."""
+    cal_panel_groups = cal_df.groupby("band")
+    panel_detect_results = pd.DataFrame(columns=["band", "panel_detected"])
+    for band, group in cal_panel_groups:
+        band_success = False
+        for row in group.itertuples(index=False):
+            image_path = row.image_path
+            if image_path.lower().endswith(".tif"):
+                image = np.asarray(Image.open(image_path)).astype(np.uint16)
+                # OpenCV aruco detection only accepts 8-bit data
+                panel = extract_panel_bounds(
+                    convert_to_type(image, row.max_val, np.uint8)
+                )
+            else:
+                image = np.asarray(Image.open(image_path)).astype(np.uint8)
+                panel = extract_panel_bounds(image)
+
+            if panel is not None:
+                band_success = True
+                break
+
+        panel_detect_results.loc[len(panel_detect_results)] = {
+            "band": band,
+            "panel_detected": True if band_success else False,
+        }
+
+    return panel_detect_results
