@@ -16,7 +16,15 @@ logger = logging.getLogger(__name__)
 
 
 def check_calibration_panels(input_path, calibration_id="CAL"):
-    """Detect calibration panel images in the given input path."""
+    """Detect calibration panel images in the given input path.
+
+    Args:
+        input_path (str): Path to the directory containing multispectral images.
+        calibration_id (str): Identifier for calibration panel images. Default is "CAL".
+
+    Returns:
+        bool: True if calibration panel images are detected, False otherwise.
+    """
     image_df = io.create_image_df(input_path, input_path)
     image_df["EXIF"] = image_df.apply(
         lambda row: MetadataParser(row.image_path).exif_data, axis=1
