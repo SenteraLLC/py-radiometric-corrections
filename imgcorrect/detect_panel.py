@@ -225,10 +225,6 @@ def detect_calibration_panels(cal_df):
                 image = np.asarray(Image.open(image_path)).astype(np.uint8)
                 panel = extract_panel_bounds(image)
 
-            logger.info("Processing image: %s", image_path)
-            logger.info("Band: %s", band)
-            logger.info("Panel detected: %s", "Yes" if panel is not None else "No")
-
             if panel is not None:
                 band_success = True
                 break
