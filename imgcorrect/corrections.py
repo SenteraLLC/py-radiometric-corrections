@@ -309,6 +309,14 @@ def get_corrections(
         logger.info("Creating calibration dataframe")
         calibration_df, image_df = io.create_cal_df(image_df, calibration_id)
 
+    if image_df.empty:
+        logger.error(
+            "No flight images found after creating calibration dataframe.  Ensure input image path contains calibration images and flight images."
+        )
+        raise ValueError(
+            "No flight images found after creating calibration dataframe.  Ensure input image path contains calibration images and flight images."
+        )
+
     # Get ILS correction:
     if not no_ils_correct:
         logger.info("Computing ILS correction")
@@ -406,10 +414,7 @@ def correct_images(
         )
         logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
 
-        drive, _ = os.path.splitdrive(output_path)
-        temp_parent = drive + os.sep if drive and drive.upper() != "C:" else None
-
-        with tempfile.TemporaryDirectory(dir=temp_parent) as temp_dir:
+        with tempfile.TemporaryDirectory() as temp_dir:
             # Apply corrections:
             logger.info("Applying image corrections...")
             image_df = image_df.progress_apply(

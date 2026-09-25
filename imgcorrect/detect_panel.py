@@ -5,6 +5,7 @@ from typing import NamedTuple, Tuple
 
 import cv2 as cv
 import numpy as np
+import pandas as pd
 from PIL import Image
 
 # Constants
@@ -204,3 +205,33 @@ def get_reflectance(row):
 
         logger.info("Mean DN: %10.5f", mean_reflectance_digital_number)
         return mean_reflectance_digital_number, panel.aruco_id
+
+
+def detect_calibration_panels(cal_df):
+    """Detect if QR code is present in calibration panel images and return True/False check."""
+    cal_panel_groups = cal_df.groupby("band")
+    panel_detect_results = pd.DataFrame(columns=["band", "panel_detected"])
+    for band, group in cal_panel_groups:
+        band_success = False
+        for row in group.itertuples(index=False):
+            image_path = row.image_path
+            if image_path.endswith(".tif"):
+                image = np.asarray(Image.open(image_path)).astype(np.uint16)
+                # OpenCV aruco detection only accepts 8-bit data
+                panel = extract_panel_bounds(
+                    convert_to_type(image, row.max_val, np.uint8)
+                )
+            else:
+                image = np.asarray(Image.open(image_path)).astype(np.uint8)
+                panel = extract_panel_bounds(image)
+
+            if panel is not None:
+                band_success = True
+                break
+
+        panel_detect_results.loc[len(panel_detect_results)] = {
+            "band": band,
+            "panel_detected": True if band_success else False,
+        }
+
+    return panel_detect_results
