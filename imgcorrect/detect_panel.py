@@ -215,7 +215,7 @@ def detect_calibration_panels(cal_df):
         band_success = False
         for row in group.itertuples(index=False):
             image_path = row.image_path
-            if image_path.endswith(".tif"):
+            if image_path.lower().endswith(".tif"):
                 image = np.asarray(Image.open(image_path)).astype(np.uint16)
                 # OpenCV aruco detection only accepts 8-bit data
                 panel = extract_panel_bounds(
@@ -224,6 +224,10 @@ def detect_calibration_panels(cal_df):
             else:
                 image = np.asarray(Image.open(image_path)).astype(np.uint8)
                 panel = extract_panel_bounds(image)
+
+            logger.info("Processing image: %s", image_path)
+            logger.info("Band: %s", band)
+            logger.info("Panel detected: %s", "Yes" if panel is not None else "No")
 
             if panel is not None:
                 band_success = True
