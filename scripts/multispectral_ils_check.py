@@ -1,9 +1,13 @@
 """Run multispectral ILS checks for a directory of imagery."""
 
 import argparse
+import logging
 
 from imgcorrect._version import __version__
 from imgcorrect.dataset import multispectral_ils_check
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
