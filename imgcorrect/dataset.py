@@ -131,11 +131,13 @@ def multispectral_ils_check(input_path, calibration_id="CAL", output_file_path=N
     Args:
         input_path (str): Path to the directory containing flight images.
         calibration_id (str): Identifier for calibration panel images. Default is "CAL".
-        output_file_path (str, optional): Path to save the JSON results. If None, results are not saved.
+        output_file_path (str, optional): Path to save the JSON results to a file. If None, results are not saved. Output file must have a .json extension.
 
     Returns:
         dict: A dictionary containing the results of the calibration panel detection, calibration panel ILS check, and flight variance check.
     """
+    if output_file_path and not output_file_path.endswith(".json"):
+        raise ValueError("Output file path must have a .json extension.")
     image_df = io.create_image_df(input_path, input_path)
     image_df["EXIF"] = image_df.apply(
         lambda row: MetadataParser(row.image_path).exif_data, axis=1
