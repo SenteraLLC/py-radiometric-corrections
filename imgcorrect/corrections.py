@@ -310,12 +310,9 @@ def get_corrections(
         calibration_df, image_df = io.create_cal_df(image_df, calibration_id)
 
     if image_df.empty:
-        logger.error(
-            "No flight images found after creating calibration dataframe.  Ensure input image path contains calibration images and flight images."
-        )
-        raise ValueError(
-            "No flight images found after creating calibration dataframe.  Ensure input image path contains calibration images and flight images."
-        )
+        message = "No flight images found after creating calibration dataframe.  Ensure input image path contains calibration images and flight images."
+        logger.error(message)
+        raise ValueError(message)
 
     # Get ILS correction:
     if not no_ils_correct:
