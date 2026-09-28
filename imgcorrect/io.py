@@ -139,14 +139,6 @@ def create_cal_df(image_df, calibration_id):
 def delete_all_originals(input_path):
     """Delete all input images."""
     image_df = create_image_df(input_path, input_path)
-    # Get image metadata:
-    image_df["EXIF"] = image_df.apply(
-        lambda row: MetadataParser(row.image_path).exif_data, axis=1
-    )
-
-    # Determine sensor type apply sensor specific settings
-    image_df = apply_sensor_settings(image_df)
-
     image_df.image_path.apply(os.remove)
 
 
