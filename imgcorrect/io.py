@@ -139,27 +139,13 @@ def create_cal_df(image_df, calibration_id):
 def delete_all_originals(input_path):
     """Delete all input images."""
     image_df = create_image_df(input_path, input_path)
-    image_df["bandnames"] = image_df.image_path.apply(
-        lambda row: MetadataParser(row).bandnames()
+    # Get image metadata:
+    image_df["EXIF"] = image_df.apply(
+        lambda row: MetadataParser(row.image_path).exif_data, axis=1
     )
-    # Skip rgb images
-    image_df = image_df[
-        image_df.bandnames.apply(lambda x: x is not None and len(x) == 1)
-    ]
-    image_df["band"] = image_df.bandnames.apply(
-        lambda x: x[0] if x is not None and len(x) == 1 else None
-    )
-    image_df["ID"] = image_df.image_path.apply(
-        lambda row: MetadataParser(row).capture_id()
-    )
-    band_count = len(image_df["band"].unique())
-    # number of occurences of each ID
-    v = image_df.ID.value_counts()
-    # skip deleting lwir images whose ID appears in every band
-    to_remove = (image_df["band"].str.lower() == "lwir") & (
-        image_df["ID"].map(v) == band_count
-    )
-    image_df = image_df[~to_remove]
+
+    # Determine sensor type apply sensor specific settings
+    image_df = apply_sensor_settings(image_df)
 
     image_df.image_path.apply(os.remove)
 
