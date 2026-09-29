@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_calibration_panels(input_path, calibration_id="CAL"):
-    """Determine if calibration panel images are present in the given input path.
+    """Determine if calibration panel images are present in the given input path and the aruco marker is readable.
 
     Args:
         input_path (str): Path to the directory containing multispectral images.
