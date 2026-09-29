@@ -10,13 +10,13 @@ from imgparse import MetadataParser, ParsingError
 
 from imgcorrect import io
 from imgcorrect.corrections import _select_calibration_set
-from imgcorrect.detect_panel import detect_calibration_panels
+from imgcorrect.detect_panel import detect_aruco_markers
 
 logger = logging.getLogger(__name__)
 
 
 def check_calibration_panels(input_path, calibration_id="CAL"):
-    """Detect calibration panel images in the given input path.
+    """Determine if calibration panel images are present in the given input path.
 
     Args:
         input_path (str): Path to the directory containing multispectral images.
@@ -76,6 +76,29 @@ def calibration_ils_check(cal_df, image_df):
     return cal_panel_check_results
 
 
+def _circular_yaw_group(yaw_series, n_groups=4, labels=None):
+    """Bin yaw angles into circular groups, wrapping around 0/360 so e.g. -176 and 176 fall in the same group.
+
+    Args:
+        yaw_series (pd.Series): Yaw angles in degrees, either in -180 to 180 or 0 to 360 range.
+        n_groups (int): Number of equal-width groups to split the 360 degree circle into.
+        labels (list, optional): Labels for the groups. Defaults to "Q1", "Q2", etc.
+
+    Returns:
+        pd.Categorical: The yaw values grouped into circular bins.
+    """
+    if labels is None:
+        labels = [f"Q{i + 1}" for i in range(n_groups)]
+
+    bin_width = 360 / n_groups
+    # normalize to 0-360, then shift so bin edges fall between groups instead of on a cardinal direction
+    normalized = yaw_series % 360
+    shifted = (normalized + bin_width / 2) % 360
+    group_codes = (shifted // bin_width).astype(int)
+
+    return pd.Categorical.from_codes(group_codes, categories=labels)
+
+
 def flight_ils_variance_check(image_df, group_by_direction=True):
     """Check variance of ILS values across flight images and return coefficient of variation (CV) for each band.
 
@@ -87,9 +110,7 @@ def flight_ils_variance_check(image_df, group_by_direction=True):
         pd.DataFrame: A DataFrame containing the CV for each band.
     """
     if group_by_direction:
-        image_df["yaw_group"] = pd.cut(
-            image_df["yaw"], bins=4, labels=["Q1", "Q2", "Q3", "Q4"]
-        )
+        image_df["yaw_group"] = _circular_yaw_group(image_df["yaw"], n_groups=4)
         yaw_group_stats_frames = []
         for group_id, group in image_df.groupby("yaw_group", observed=True):
             group_stats = group.groupby("band").ILS.agg(["mean", "std"]).reset_index()
@@ -162,15 +183,20 @@ def multispectral_ils_check(input_path, calibration_id="CAL", output_file_path=N
     image_df = image_df.set_index("timestamp", drop=False).sort_index()
 
     cal_df, non_cal_df = io.create_cal_df(image_df, calibration_id)
+
     if image_df["ILS"].isna().all():
         logger.warning("No valid ILS values found in the images, skipping ILS check.")
         panel_ils_results = None
         flight_check_results = None
     else:
-        panel_ils_results = calibration_ils_check(cal_df, non_cal_df)
-        flight_check_results = flight_ils_variance_check(image_df)
+        panel_ils_results = (
+            None if cal_df.empty else calibration_ils_check(cal_df, non_cal_df)
+        )
+        if cal_df.empty:
+            logger.warning("No calibration panel images found, skipping ILS check.")
+        flight_check_results = flight_ils_variance_check(non_cal_df)
 
-    panel_detection_results = detect_calibration_panels(cal_df)
+    panel_detection_results = detect_aruco_markers(cal_df) if not cal_df.empty else None
 
     results = {
         "calibration_panel_detection": panel_detection_results,

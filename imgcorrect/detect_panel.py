@@ -207,15 +207,17 @@ def get_reflectance(row):
         return mean_reflectance_digital_number, panel.aruco_id
 
 
-def detect_calibration_panels(cal_df):
-    """Detect if QR code is present in calibration panel images and return True/False check."""
+def detect_aruco_markers(cal_df):
+    """Detect if ArUco marker is present in calibration panel images and return True/False check."""
     cal_panel_groups = cal_df.groupby("band")
     panel_detect_results = pd.DataFrame(columns=["band", "panel_detected"])
     for band, group in cal_panel_groups:
         band_success = False
         for row in group.itertuples(index=False):
             image_path = row.image_path
-            if image_path.lower().endswith(".tif"):
+            if image_path.lower().endswith(".tif") or image_path.lower().endswith(
+                ".tiff"
+            ):
                 image = np.asarray(Image.open(image_path)).astype(np.uint16)
                 # OpenCV aruco detection only accepts 8-bit data
                 panel = extract_panel_bounds(
