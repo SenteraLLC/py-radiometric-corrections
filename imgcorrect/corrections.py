@@ -204,24 +204,28 @@ def compute_correction_coefficient(image_df_row):
     )
 
 
-def adjust_scale(path, max_val, normalize, uint16_output):
+def adjust_scale(path, band, max_val, normalize, uint16_output):
     """Normalize and/or scale output values to 0-65535."""
-    image_arr = np.asarray(Image.open(path)).astype(np.float32)
-    if normalize:
-        image_arr = image_arr / max_val
-    if uint16_output:
-        image_arr = image_arr * 65535
-        image_arr = image_arr.astype(np.uint16)
-    tf.imwrite(path, image_arr)
+    if band.lower() != "lwir":
+        image_arr = np.asarray(Image.open(path)).astype(np.float32)
+        if normalize:
+            image_arr = image_arr / max_val
+        if uint16_output:
+            image_arr = image_arr * 65535
+            image_arr = image_arr.astype(np.uint16)
+        tf.imwrite(path, image_arr)
 
 
-def apply_corrections(image_df_row):
+def apply_corrections(image_df_row, uint16_output):
     """Multiply input values by correction coefficients to generate reflectance values."""
     logger.debug("Applying correction to image: %s", image_df_row.image_path)
 
     image_arr = np.asarray(Image.open(image_df_row.image_path)).astype(np.float32)
     if image_df_row.band.lower() == "lwir":
-        image_arr = image_arr / 100 - 273.15
+        if uint16_output:
+            image_arr = image_arr.astype(np.uint16)
+        else:
+            image_arr = image_arr / 100 - 273.15
     else:
         # for images that represent data for multiple bands
         if "band_math" in image_df_row.index:
@@ -401,20 +405,25 @@ def correct_images(
         # Apply corrections:
         logger.info("Applying image corrections...")
         image_df = image_df.progress_apply(
-            lambda row: io.write_image(apply_corrections(row), row, temp_dir),
+            lambda row: io.write_image(
+                apply_corrections(row, uint16_output), row, temp_dir
+            ),
             axis=1,
         )
 
         # Adjust scale if necessary:
         if no_reflectance_correct or uint16_output:
             logger.info("Adjusting output scale...")
-            image_df.temp_path.progress_apply(
-                lambda path: adjust_scale(
-                    path,
-                    image_df.max_val.max(),
+            max_val = image_df.max_val.max()
+            image_df.progress_apply(
+                lambda row: adjust_scale(
+                    row.temp_path,
+                    row.band,
+                    max_val,
                     no_reflectance_correct,
                     uint16_output,
-                )
+                ),
+                axis=1,
             )
 
         # Copy EXIF:
