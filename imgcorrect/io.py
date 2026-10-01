@@ -136,8 +136,9 @@ def create_cal_df(image_df, calibration_id):
     return image_df.loc[is_cal_image], image_df.loc[~is_cal_image]
 
 
-def delete_all_originals(image_df):
+def delete_all_originals(input_path):
     """Delete all input images."""
+    image_df = create_image_df(input_path, input_path)
     image_df.image_path.apply(os.remove)
 
 
