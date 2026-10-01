@@ -191,7 +191,7 @@ def compute_reflectance_correction(
     )
     if image_df["slope_coefficient"].isnull().values.any():
         raise FileNotFoundError(
-            "Calibration imagery with a visible reference panel was not found for one or more bands."
+            f"Calibration imagery with a visible reference panel was not found for bands: {image_df.loc[image_df['slope_coefficient'].isnull(), 'band'].unique()}"
         )
 
     return image_df, calibration_sets, selected_group_id
