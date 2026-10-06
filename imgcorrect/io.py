@@ -106,6 +106,9 @@ def create_image_df(input_path, output_path):
     image_df["image_path"] = glob(
         input_path + "/**/*.[Tt][Ii][Ff]", recursive=True
     ) + glob(input_path + "/**/*.[Jj][Pp][Gg]", recursive=True)
+    if len(image_df["image_path"]) == 0:
+        logger.error("No images found in the input path.")
+        raise Exception("No valid image files(.tif, .jpg) found in the input path.")
     image_df["image_root"] = image_df.image_path.apply(os.path.dirname)
     image_df["output_path"] = image_df.image_path.str.replace(
         input_path, output_path, regex=False
