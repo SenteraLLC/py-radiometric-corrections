@@ -76,27 +76,87 @@ def calibration_ils_check(cal_df, image_df):
     return cal_panel_check_results
 
 
-def _circular_yaw_group(yaw_series, n_groups=4, labels=None):
-    """Bin yaw angles into circular groups, wrapping around 0/360 so e.g. -176 and 176 fall in the same group.
+def _numpy_kmeans_2(points, max_iter=100, tolerance=1e-8):
+    """Fit two centers with NumPy using first-point/farthest-point initialization."""
+    points = np.asarray(points, dtype=float)
+    if points.ndim != 2 or points.shape[1] != 2 or len(points) < 2:
+        raise ValueError("At least two two-dimensional samples are required.")
+    if not np.isfinite(points).all():
+        raise ValueError("Samples must contain only finite values.")
+    if max_iter < 1 or not np.isfinite(tolerance) or tolerance < 0:
+        raise ValueError(
+            "max_iter must be positive and tolerance finite and nonnegative."
+        )
+
+    first = points[0]
+    second = points[np.argmax(np.sum((points - first) ** 2, axis=1))]
+    centers = np.vstack((first, second))
+
+    for _ in range(max_iter):
+        distances = np.sum((points[:, None, :] - centers[None, :, :]) ** 2, axis=2)
+        groups = np.argmin(distances, axis=1)
+        new_centers = centers.copy()
+        for group in range(2):
+            members = points[groups == group]
+            if len(members):
+                new_centers[group] = members.mean(axis=0)
+            else:
+                assigned = distances[np.arange(len(points)), groups]
+                new_centers[group] = points[np.argmax(assigned)]
+
+        converged = np.allclose(new_centers, centers, atol=tolerance, rtol=0)
+        centers = new_centers
+        if converged:
+            break
+
+    distances = np.sum((points[:, None, :] - centers[None, :, :]) ** 2, axis=2)
+    return np.argmin(distances, axis=1), centers
+
+
+def _circular_yaw_group(yaw_series, n_groups=2, labels=None, threshold_deg=20):
+    """Find two dominant yaw directions using one NumPy circular K-means fit.
 
     Args:
-        yaw_series (pd.Series): Yaw angles in degrees, either in -180 to 180 or 0 to 360 range.
-        n_groups (int): Number of equal-width groups to split the 360 degree circle into.
-        labels (list, optional): Labels for the groups. Defaults to "Q1", "Q2", etc.
+        yaw_series (pd.Series): Yaw angles in degrees; invalid values remain missing.
+        n_groups (int): Must be 2 for the opposing survey directions.
+        labels (list, optional): Two labels, defaulting to FlightDir1 and FlightDir2.
+        threshold_deg (float): Maximum survey-heading deviation, between 0 and 90.
 
     Returns:
-        pd.Categorical: The yaw values grouped into circular bins.
+        pd.Categorical: Direction labels or Transect/Other for off-axis headings.
+            Labels follow ascending normalized center angles, not flight order.
     """
+    if n_groups != 2:
+        raise ValueError("Circular K-means requires exactly two direction groups.")
     if labels is None:
-        labels = [f"Q{i + 1}" for i in range(n_groups)]
+        labels = ["FlightDir1", "FlightDir2"]
+    if len(labels) != 2 or len(set(labels)) != 2 or "Transect/Other" in labels:
+        raise ValueError("Provide two distinct labels other than Transect/Other.")
+    if not 0 < threshold_deg < 90:
+        raise ValueError("threshold_deg must be between 0 and 90 degrees.")
 
-    bin_width = 360 / n_groups
-    # normalize to 0-360, then shift so bin edges fall between groups instead of on a cardinal direction
-    normalized = yaw_series % 360
-    shifted = (normalized + bin_width / 2) % 360
-    group_codes = (shifted // bin_width).astype(int)
+    yaw = pd.to_numeric(yaw_series, errors="coerce").to_numpy(
+        dtype=float, na_value=np.nan
+    )
+    valid = np.isfinite(yaw)
+    values = yaw[valid] % 360
+    group_codes = np.full(len(yaw), -1, dtype=int)
+    categories = pd.Index(list(labels) + ["Transect/Other"])
 
-    return pd.Categorical.from_codes(group_codes, categories=labels)
+    if len(np.unique(values)) < 2:
+        group_codes[valid] = 0
+        return pd.Categorical.from_codes(group_codes, categories=categories)
+
+    radians = np.radians(values)
+    points = np.column_stack((np.cos(radians), np.sin(radians)))
+    _, centers_xy = _numpy_kmeans_2(points)
+    centers = np.sort(np.degrees(np.arctan2(centers_xy[:, 1], centers_xy[:, 0])) % 360)
+    distances = np.abs((values[:, None] - centers + 180) % 360 - 180)
+    groups = distances.argmin(axis=1)
+    deviation = distances[np.arange(len(values)), groups]
+    group_codes[valid] = np.where(deviation > threshold_deg, 2, groups)
+
+    return pd.Categorical.from_codes(group_codes, categories=categories)
 
 
 def flight_ils_variance_check(image_df, group_by_direction=True):
@@ -104,20 +164,24 @@ def flight_ils_variance_check(image_df, group_by_direction=True):
 
     Args:
         image_df (pd.DataFrame): DataFrame containing all flight images.
-        group_by_direction (bool): Whether to group images by yaw direction before calculating variance.
+        group_by_direction (bool): Group by two learned yaw directions, excluding
+        invalid headings and headings more than 20 degrees from either center.
 
     Returns:
         pd.DataFrame: A DataFrame containing the CV for each band.
     """
     if group_by_direction:
-        image_df["yaw_group"] = _circular_yaw_group(image_df["yaw"], n_groups=4)
+        image_df["yaw_group"] = _circular_yaw_group(image_df["yaw"])
+        survey_df = image_df.loc[image_df["yaw_group"] != "Transect/Other"]
         yaw_group_stats_frames = []
-        for group_id, group in image_df.groupby("yaw_group", observed=True):
+        for group_id, group in survey_df.groupby("yaw_group", observed=True):
             group_stats = group.groupby("band").ILS.agg(["mean", "std"]).reset_index()
             group_stats["set_id"] = group_id
             group_stats["cv"] = group_stats["std"] / group_stats["mean"]
             yaw_group_stats_frames.append(group_stats[["band", "cv"]])
 
+        if not yaw_group_stats_frames:
+            return pd.DataFrame(columns=["band", "cv"])
         yaw_group_stats = pd.concat(yaw_group_stats_frames, ignore_index=True)
 
         band_stats = yaw_group_stats.groupby("band").cv.mean().reset_index()
