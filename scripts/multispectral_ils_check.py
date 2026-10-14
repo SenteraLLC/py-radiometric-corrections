@@ -33,6 +33,13 @@ if __name__ == "__main__":
         help="Optional path for the JSON results file.",
     )
     parser.add_argument(
+        "--group-by-direction",
+        "-g",
+        action="store_true",
+        default=False,
+        help="Group images by drone heading. Default is False.",
+    )
+    parser.add_argument(
         "--version",
         "-v",
         action="version",

@@ -210,16 +210,20 @@ def _to_jsonable(value):
     return value
 
 
-def multispectral_ils_check(input_path, calibration_id="CAL", output_file_path=None):
+def multispectral_ils_check(
+    input_path, calibration_id="CAL", output_file_path=None, group_by_direction=True
+):
     """Perform multispectral ILS check on the images in the given input path.
 
     Args:
         input_path (str): Path to the directory containing flight images.
         calibration_id (str): Identifier for calibration panel images. Default is "CAL".
         output_file_path (str, optional): Path to save the JSON results to a file. If None, results are not saved. Output file must have a .json extension.
+        group_by_direction (bool): Whether to group images by drone heading. Default is True.
 
     Returns:
         dict: A dictionary containing the results of the calibration panel detection, calibration panel ILS check, and flight variance check.
+        group_by_direction (bool): Whether to group images by drone heading. Default is True.
     """
     if output_file_path and not output_file_path.endswith(".json"):
         raise ValueError("Output file path must have a .json extension.")
@@ -258,7 +262,9 @@ def multispectral_ils_check(input_path, calibration_id="CAL", output_file_path=N
         )
         if cal_df.empty:
             logger.warning("No calibration panel images found, skipping ILS check.")
-        flight_check_results = flight_ils_variance_check(non_cal_df)
+        flight_check_results = flight_ils_variance_check(
+            non_cal_df, group_by_direction=group_by_direction
+        )
 
     panel_detection_results = detect_aruco_markers(cal_df) if not cal_df.empty else None
 
