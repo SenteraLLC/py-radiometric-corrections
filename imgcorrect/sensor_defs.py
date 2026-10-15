@@ -106,9 +106,7 @@ sensor_defs = [
         "criteria": {"Image Make": "Sentera", "Image Model": "21216"},
         "ignore_criteria": {
             "Image Model": [
-                "82KP",  # LWIR
                 "20MP-ERS",  # RGB
-                "328KP",  # LWIR
             ]
         },
         "settings": {
