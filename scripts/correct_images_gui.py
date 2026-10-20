@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import sys
@@ -7,6 +8,7 @@ from tkinter import filedialog, messagebox
 
 from imgcorrect import corrections
 from imgcorrect._version import __version__ as imgcorrect_version
+from imgcorrect.dataset import multispectral_ils_check
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +49,6 @@ class CorrectImagesApp(tk.Tk):
             self.iconbitmap("sentera_radiometric_corrections_icon.ico")
         self.create_widgets()
         self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(10, weight=1)  # Make the output text box row expandable
 
     def create_widgets(self):
         row = 0
@@ -143,6 +144,17 @@ class CorrectImagesApp(tk.Tk):
             self, text="Output as UInt16 (0-65535)", variable=self.uint16_var
         )
         self.uint16_checkbutton.grid(row=row, column=0, sticky="w", padx=15)
+        row += 1
+
+        self.lighting_conditions_check_var = tk.BooleanVar()
+        self.lighting_conditions_checkbutton = tk.Checkbutton(
+            self,
+            text="Lighting Conditions Check",
+            variable=self.lighting_conditions_check_var,
+        )
+        self.lighting_conditions_checkbutton.grid(
+            row=row, column=0, sticky="w", padx=15
+        )
 
         self.toggle_advanced_options()
 
@@ -165,6 +177,7 @@ class CorrectImagesApp(tk.Tk):
         self.output_text.grid(
             row=row, column=0, sticky="nsew", columnspan=3, padx=(15, 15), pady=(0, 15)
         )
+        self.grid_rowconfigure(row, weight=1)
 
     def toggle_advanced_options(self):
         widgets = [
@@ -176,6 +189,7 @@ class CorrectImagesApp(tk.Tk):
             self.exiftool_entry,
             self.exiftool_path_browse_button,
             self.uint16_checkbutton,
+            self.lighting_conditions_checkbutton,
         ]
         if not self.advanced_options.get():
             for widget in widgets:
@@ -252,6 +266,7 @@ class CorrectImagesApp(tk.Tk):
         no_reflectance_correct = not self.reflectance_var.get()
         all_panels = self.all_panels_var.get()
         delete_original = self.delete_original_var.get()
+        lighting_conditions_check = self.lighting_conditions_check_var.get()
 
         if self.exiftool_path_var.get():
             exiftool_path = self.exiftool_path_var.get()
@@ -294,6 +309,29 @@ class CorrectImagesApp(tk.Tk):
             logger.info(f"All Panels: {all_panels}")
             logger.info(f"Delete Original: {delete_original}")
             logger.info(f"UInt16 Output: {uint16_output}")
+            if lighting_conditions_check:
+                try:
+                    logger.info("Running ILS check...")
+                    ils_check_results = multispectral_ils_check(
+                        input_path,
+                        calibration_id,
+                        output_file_path=os.path.join(
+                            os.path.split(output_path)[0],
+                            f"{os.path.basename(output_path)}_ils_check_results.json",
+                        ),
+                    )
+                    logger.info("ILS check results:")
+                    if isinstance(ils_check_results, dict):
+                        for section, results in ils_check_results.items():
+                            logger.info(
+                                "%s:\n%s",
+                                section.replace("_", " ").title(),
+                                json.dumps(results, indent=2),
+                            )
+                    else:
+                        logger.info(json.dumps(ils_check_results, indent=2))
+                except Exception as e:
+                    logger.error(f"Error during ILS check: {e}")
             try:
                 corrections.correct_images(
                     input_path,

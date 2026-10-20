@@ -4,7 +4,7 @@ Tool to perform various corrections on imagery from supported sensors, including
 To install the Sentera Radiometric Corrections app, download the `Sentera Radiometric Corrections GUI.zip` file from the latest release on the homepage.  After downloading, extract the files and run the executable file.
 
 
-<p align="center"><img width="802" height="532" alt="image" src="https://github.com/user-attachments/assets/c976fccf-7176-47c5-a4a9-0465d3aba39e" />
+<p align="center"><img width="593" height="522" alt="image" src="https://github.com/user-attachments/assets/b3796483-3b29-4b1d-a807-6499f74e1e2e" />
 </p>
 
 The Sentera Radiometric Corrections tool will perform corrections on multispectral drone imagery as well as recflectance corrections when a supported Sentera calibration panel is used.
@@ -25,6 +25,10 @@ The Sentera Radiometric Corrections tool will perform corrections on multispectr
 - Use All Panel Sets(6X):  By default only the best calibration set will be used to perform corrections for Sentera sensors.  Select this option to perform corrections using all available calibration panel captures.
 - Delete/Overwrite Original Images: Select this option and set the input and output paths to match to overwrite the original images with the corrected images. Not reccomended as original images cannot be restored.
 - Output as UInt16(0-65535):  By default corrected images are formated in Float32 with values in reflectance ranging from 0-1.  Selecting this option will output the corrected images in Uint16 with values ranging from 0-65535.  This may be required for certain photogrametry software and corrected images will have a much smaller file size.
+- Lighting Conditions Check: By selecting this option the dataset's lighting conditions are reviewed.  Reading results:
+	- calibration_panel_detection: returns true/false if calibration panels are detected in calibration images.
+ 	- calibration_panel_ils_check: returns the average panel ILS per band and the difference between the ILS values of the panel images and the flight images.  Differences are in percent(0-1).  Differences over 0.3 are considered high and may lead to inaccurate results.
+  	- flight_variance_check: returns the coefficient of variance per band within the flight images.  Higher coefficient of variance indicates high lighting variability within the dataset.  Coefficient of variance over 0.3 is considered high and may lead to inconsistent results.
 
 
 

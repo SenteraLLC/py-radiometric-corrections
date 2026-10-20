@@ -1,7 +1,6 @@
 """Radiometric corrections for Sentera sensors."""
 
 import logging
-import os
 import tempfile
 
 import imgparse
@@ -11,7 +10,7 @@ from imgparse import MetadataParser, ParsingError
 from PIL import Image
 from tqdm import tqdm
 
-from imgcorrect import detect_panel, io, metadata, thermal_convert, zenith_co
+from imgcorrect import detect_panel, io, metadata, zenith_co
 
 logger = logging.getLogger(__name__)
 
@@ -176,10 +175,15 @@ def compute_reflectance_correction(
     else:
         band_df["ils_scaling_factor"] = 1
 
-    band_df["slope_coefficient"] = (
-        band_df.apply(lambda row: _get_band_coeff(row), axis=1)
-        / (band_df.mean_reflectance / band_df.autoexposure)
-        * band_df.ils_scaling_factor
+    band_df["slope_coefficient"] = band_df.apply(
+        lambda row: (
+            1
+            if str(row["band"]).lower() == "lwir"
+            else _get_band_coeff(row)
+            / (row["mean_reflectance"] / row["autoexposure"])
+            * row["ils_scaling_factor"]
+        ),
+        axis=1,
     )
 
     image_df = image_df.merge(
@@ -187,7 +191,7 @@ def compute_reflectance_correction(
     )
     if image_df["slope_coefficient"].isnull().values.any():
         raise FileNotFoundError(
-            "Calibration imagery with a visible reference panel was not found for one or more bands."
+            f"Calibration imagery with a visible reference panel was not found for bands: {image_df.loc[image_df['slope_coefficient'].isnull(), 'band'].unique()}"
         )
 
     return image_df, calibration_sets, selected_group_id
@@ -200,32 +204,39 @@ def compute_correction_coefficient(image_df_row):
     )
 
 
-def adjust_scale(path, max_val, normalize, uint16_output):
+def adjust_scale(path, band, max_val, normalize, uint16_output):
     """Normalize and/or scale output values to 0-65535."""
-    image_arr = np.asarray(Image.open(path)).astype(np.float32)
-    if normalize:
-        image_arr = image_arr / max_val
-    if uint16_output:
-        image_arr = image_arr * 65535
-        image_arr = image_arr.astype(np.uint16)
-    tf.imwrite(path, image_arr)
+    if band.lower() != "lwir":
+        image_arr = np.asarray(Image.open(path)).astype(np.float32)
+        if normalize:
+            image_arr = image_arr / max_val
+        if uint16_output:
+            image_arr = image_arr * 65535
+            image_arr = image_arr.astype(np.uint16)
+        tf.imwrite(path, image_arr)
 
 
-def apply_corrections(image_df_row):
+def apply_corrections(image_df_row, uint16_output):
     """Multiply input values by correction coefficients to generate reflectance values."""
     logger.debug("Applying correction to image: %s", image_df_row.image_path)
 
     image_arr = np.asarray(Image.open(image_df_row.image_path)).astype(np.float32)
-    # for images that represent data for multiple bands
-    if "band_math" in image_df_row.index:
-        # ignore saturated pixels
-        saturation_indices = image_arr >= 255
-        # ideally set to np.nan, but this messes up the stitching software
-        image_arr[saturation_indices] = 255
-        # perform band math
-        image_arr = detect_panel.isolate_band(image_arr, image_df_row.band_math)
+    if image_df_row.band.lower() == "lwir":
+        if uint16_output:
+            image_arr = image_arr.astype(np.uint16)
+        else:
+            image_arr = image_arr / 100 - 273.15
+    else:
+        # for images that represent data for multiple bands
+        if "band_math" in image_df_row.index:
+            # ignore saturated pixels
+            saturation_indices = image_arr >= 255
+            # ideally set to np.nan, but this messes up the stitching software
+            image_arr[saturation_indices] = 255
+            # perform band math
+            image_arr = detect_panel.isolate_band(image_arr, image_df_row.band_math)
 
-    image_arr = image_arr * image_df_row.correction_coefficient
+        image_arr = image_arr * image_df_row.correction_coefficient
 
     return image_arr
 
@@ -288,6 +299,8 @@ def get_corrections(
             tag, so fall back to SunSensor if available, if not ILS corrections will be disabled.
             """
             parser = MetadataParser(row.image_path)
+            if row.band == "lwir":
+                return 1
             if parser.make() == "DJI":
                 try:
                     return parser.irradiance()
@@ -308,6 +321,11 @@ def get_corrections(
     if not no_reflectance_correct:
         logger.info("Creating calibration dataframe")
         calibration_df, image_df = io.create_cal_df(image_df, calibration_id)
+
+    if image_df.empty:
+        message = "No flight images found after creating calibration dataframe.  Ensure input image path contains calibration images and flight images."
+        logger.error(message)
+        raise ValueError(message)
 
     # Get ILS correction:
     if not no_ils_correct:
@@ -370,72 +388,56 @@ def correct_images(
 
     The result is applied to each image before the image is re-saved.
     """
-    # Check for LWIR folder and convert images
-    lwir_folder_path = None
-    input_folders = [
-        f for f in os.listdir(input_path) if os.path.isdir(os.path.join(input_path, f))
-    ]
-    lwir_only = False
-    if not input_folders:
-        if "lwir" in os.path.split(input_path)[1].lower():
-            lwir_folder_path = input_path
-            lwir_only = True
-    else:
-        for folder in input_folders:
-            if "lwir" in folder.lower():
-                lwir_folder_path = os.path.join(input_path, folder)
+    if output_path is None:
+        output_path = input_path
 
-    if lwir_folder_path is not None:
-        lwir_output_path = os.path.join(output_path, os.path.split(lwir_folder_path)[1])
-        if not os.path.exists(output_path):
-            os.mkdir(output_path)
-        thermal_convert.convert_thermal(
-            lwir_folder_path, lwir_output_path, exiftool_path
+    image_df, calibration_sets, selected_set_id = get_corrections(
+        input_path,
+        calibration_id,
+        output_path,
+        no_ils_correct,
+        no_reflectance_correct,
+        all_panels=all_panels,
+    )
+    logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Apply corrections:
+        logger.info("Applying image corrections...")
+        image_df = image_df.progress_apply(
+            lambda row: io.write_image(
+                apply_corrections(row, uint16_output), row, temp_dir
+            ),
+            axis=1,
         )
 
-    if not lwir_only:
-        image_df, calibration_sets, selected_set_id = get_corrections(
-            input_path,
-            calibration_id,
-            output_path,
-            no_ils_correct,
-            no_reflectance_correct,
-            all_panels=all_panels,
-        )
-        logger.info("Delete original: %s", "Enabled" if delete_original else "Disabled")
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Apply corrections:
-            logger.info("Applying image corrections...")
-            image_df = image_df.progress_apply(
-                lambda row: io.write_image(apply_corrections(row), row, temp_dir),
+        # Adjust scale if necessary:
+        if no_reflectance_correct or uint16_output:
+            logger.info("Adjusting output scale...")
+            max_val = image_df.max_val.max()
+            image_df.progress_apply(
+                lambda row: adjust_scale(
+                    row.temp_path,
+                    row.band,
+                    max_val,
+                    no_reflectance_correct,
+                    uint16_output,
+                ),
                 axis=1,
             )
 
-            # Adjust scale if necessary:
-            if no_reflectance_correct or uint16_output:
-                logger.info("Adjusting output scale...")
-                image_df.temp_path.progress_apply(
-                    lambda path: adjust_scale(
-                        path,
-                        image_df.max_val.max(),
-                        no_reflectance_correct,
-                        uint16_output,
-                    )
-                )
+        # Copy EXIF:
+        logger.info("Writing EXIF data...")
+        # progress_apply is tqdm version of apply
+        image_df.progress_apply(
+            lambda row: metadata.copy_exif(row, exiftool_path), axis=1
+        )
 
-            # Copy EXIF:
-            logger.info("Writing EXIF data...")
-            # progress_apply is tqdm version of apply
-            image_df.progress_apply(
-                lambda row: metadata.copy_exif(row, exiftool_path), axis=1
-            )
+        # Delete input imagery if requested:
+        if delete_original:
+            io.delete_all_originals(input_path)
 
-            # Delete input imagery if requested:
-            if delete_original:
-                io.delete_all_originals(image_df)
+        # Move output imagery to correct output directory:
+        io.move_corrected_images(image_df)
 
-            # Move output imagery to correct output directory:
-            io.move_corrected_images(image_df)
-
-        return image_df, calibration_sets, selected_set_id
+    return image_df, calibration_sets, selected_set_id

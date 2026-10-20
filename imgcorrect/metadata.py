@@ -20,17 +20,27 @@ def copy_exif(image_df_row, exiftool_path):
         command += ["-config", "cfg/dji.cfg"]
     elif make == "Sentera":
         command += ["-config", "cfg/exiftool.cfg"]
-    command += [
-        "-overwrite_original",
-        "-TagsFromFile",
-        image_df_row.image_path,
-        "-all",
-        "--xmp-Camera:ColorTransform",
-        "--xmp-Camera:SunSensor",
-        "-xmp-Camera:IsNormalized=1",
-        "-xmp-Camera:BlackCurrent=",
-        "-xmp-Camera:BlackCurrent=0",
-    ]
+    if image_df_row.band.lower() == "lwir":
+        command += [
+            "-overwrite_original",
+            "-TagsFromFile",
+            image_df_row.image_path,
+            "-xmp",
+            "-exif",
+            "-all",
+        ]
+    else:
+        command += [
+            "-overwrite_original",
+            "-TagsFromFile",
+            image_df_row.image_path,
+            "-all",
+            "--xmp-Camera:ColorTransform",
+            "--xmp-Camera:SunSensor",
+            "-xmp-Camera:IsNormalized=1",
+            "-xmp-Camera:BlackCurrent=",
+            "-xmp-Camera:BlackCurrent=0",
+        ]
     if image_df_row.reduce_xmp:
         cent_arr, fwhm_arr = parser.wavelength_data()
         band_arr = parser.bandnames()
