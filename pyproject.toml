@@ -14,7 +14,7 @@ tqdm = "^4.59.0"
 opencv-contrib-python = ">=4.6.0,<4.7.0"
 imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v2.0.14"}
 imageio = "^2.19.3"
-imagecodecs = "2025.3.30"
+imagecodecs = ">=2025.3.30"
 urllib3 = "<2"
 tk = "^0.1.0"
 
