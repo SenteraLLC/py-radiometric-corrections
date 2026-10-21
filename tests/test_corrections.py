@@ -8,6 +8,7 @@ from PIL import Image
 
 import imgcorrect
 import imgcorrect.zenith_co as zenith_co
+from imgcorrect.dataset import multispectral_ils_check
 
 EXIFTOOL_PATH = (
     os.path.join(
@@ -120,6 +121,14 @@ def test_aruco_marker_coefficient_selection():
     for i, coeff in enumerate(zenith_co.sg3144_batch4_coefficients):
         assert isinstance(coeff, (int, float)), f"Batch4[{i}] is not numeric"
         assert coeff >= 0, f"Batch4[{i}] is negative"
+
+
+def test_ms_ils_check():
+    multispectral_ils_check(
+        input_path=os.path.normpath("tests/6x_images/"),
+        calibration_id="CAL",
+        output_file_path=os.path.normpath("tests/output/ms_ils_check.json"),
+    )
 
 
 def test_6x_cal_ils():
