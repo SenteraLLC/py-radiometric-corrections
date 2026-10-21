@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 from datetime import timedelta
 
 import numpy as np
@@ -227,6 +228,8 @@ def multispectral_ils_check(
     """
     if output_file_path and not output_file_path.endswith(".json"):
         raise ValueError("Output file path must have a .json extension.")
+    if output_file_path:
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
     image_df = io.create_image_df(input_path, input_path)
     image_df["EXIF"] = image_df.apply(
         lambda row: MetadataParser(row.image_path).exif_data, axis=1
