@@ -1,12 +1,24 @@
 import os
+import shutil
 
 import cv2 as cv
 import numpy as np
+import pytest
 from PIL import Image
 
 import imgcorrect
-import imgcorrect.detect_panel as detect_panel
 import imgcorrect.zenith_co as zenith_co
+from imgcorrect.dataset import multispectral_ils_check
+
+EXIFTOOL_PATH = (
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "exiftool",
+        "exiftool.exe",
+    )
+    if os.name == "nt"
+    else "exiftool"
+)
 
 
 def test_aruco_marker_detection():
@@ -111,71 +123,99 @@ def test_aruco_marker_coefficient_selection():
         assert coeff >= 0, f"Batch4[{i}] is negative"
 
 
-def test_6x_cal_ils():
-    imgcorrect.correct_images(
-        "tests/6x_images/",
-        "CAL",
-        "tests/output/6x_cal_ils/",
-        False,
-        False,
-        False,
-        False,
-        "exiftool",
-        False,
+def test_ms_ils_check():
+    multispectral_ils_check(
+        input_path=os.path.normpath("tests/6x_images/"),
+        calibration_id="CAL",
+        output_file_path=os.path.normpath("tests/output/ms_ils_check.json"),
     )
 
 
-def test_6x_cal_ils_u16():
+def test_6x_cal_ils():
     imgcorrect.correct_images(
-        "tests/6x_images/",
-        "CAL",
-        "tests/output/6x_cal_ils_u16/",
-        False,
-        False,
-        False,
-        False,
-        "exiftool",
-        True,
+        input_path=os.path.normpath("tests/6x_images/"),
+        calibration_id="CAL",
+        output_path=os.path.normpath("tests/output/6x_cal_ils/"),
+        no_ils_correct=False,
+        no_reflectance_correct=False,
+        all_panels=False,
+        delete_original=False,
+        exiftool_path=EXIFTOOL_PATH,
+        uint16_output=False,
     )
 
 
 def test_6x_no_ils_no_cal_u16():
     imgcorrect.correct_images(
-        "tests/6x_images/",
-        "CAL",
-        "tests/output/6x_no_ils_no_cal_u16/",
-        True,
-        True,
-        False,
-        False,
-        "exiftool",
-        True,
+        input_path=os.path.normpath("tests/6x_images/"),
+        calibration_id="CAL",
+        output_path=os.path.normpath("tests/output/6x_no_ils_no_cal_u16/"),
+        no_ils_correct=True,
+        no_reflectance_correct=True,
+        all_panels=False,
+        delete_original=False,
+        exiftool_path=EXIFTOOL_PATH,
+        uint16_output=True,
     )
 
 
-def test_d4k_ils():
+def test_6x_thermal_cal_ils():
     imgcorrect.correct_images(
-        "tests/d4k_images/",
-        "CAL",
-        "tests/output/d4k_ils/",
-        False,
-        True,
-        False,
-        False,
-        "exiftool",
-        False,
+        input_path=os.path.normpath("tests/6x_thermal_images/"),
+        calibration_id="CAL",
+        output_path=os.path.normpath("tests/output/6x_thermal_cal_ils/"),
+        no_ils_correct=False,
+        no_reflectance_correct=False,
+        all_panels=False,
+        delete_original=False,
+        exiftool_path=EXIFTOOL_PATH,
+        uint16_output=False,
     )
 
 
-def test_m3m_ils():
+def test_6x_thermal_no_ils_no_cal_u16():
     imgcorrect.correct_images(
-        "tests/m3m_images/",
-        "CAL",
-        "tests/output/m3m_ils/",
-        False,
-        False,
-        False,
-        False,
-        "exiftool",
-        False,
+        input_path=os.path.normpath("tests/6x_thermal_images/"),
+        calibration_id="CAL",
+        output_path=os.path.normpath("tests/output/6x_thermal_no_ils_no_cal_u16/"),
+        no_ils_correct=True,
+        no_reflectance_correct=True,
+        all_panels=False,
+        delete_original=False,
+        exiftool_path=EXIFTOOL_PATH,
+        uint16_output=True,
     )
+
+
+def test_d4k_no_ils_no_cal():
+    imgcorrect.correct_images(
+        input_path=os.path.normpath("tests/d4k_images/"),
+        calibration_id="CAL",
+        output_path=os.path.normpath("tests/output/d4k_no_ils_no_cal/"),
+        no_ils_correct=True,
+        no_reflectance_correct=True,
+        all_panels=False,
+        delete_original=False,
+        exiftool_path=EXIFTOOL_PATH,
+        uint16_output=False,
+    )
+
+
+def test_m3m_cal_ils():
+    imgcorrect.correct_images(
+        input_path=os.path.normpath("tests/m3m_images/"),
+        calibration_id="CAL",
+        output_path=os.path.normpath("tests/output/m3m_cal_ils/"),
+        no_ils_correct=False,
+        no_reflectance_correct=False,
+        all_panels=False,
+        delete_original=False,
+        exiftool_path=EXIFTOOL_PATH,
+        uint16_output=False,
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def clean_up_outputs():
+    yield
+    shutil.rmtree(os.path.normpath("tests/output/"), ignore_errors=True)

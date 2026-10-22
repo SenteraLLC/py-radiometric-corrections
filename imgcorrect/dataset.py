@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 from datetime import timedelta
 
 import numpy as np
@@ -212,7 +213,7 @@ def _to_jsonable(value):
 
 def multispectral_ils_check(
     input_path, calibration_id="CAL", output_file_path=None, group_by_direction=True
-):
+) -> dict:
     """Perform multispectral ILS check on the images in the given input path.
 
     Args:
@@ -223,10 +224,11 @@ def multispectral_ils_check(
 
     Returns:
         dict: A dictionary containing the results of the calibration panel detection, calibration panel ILS check, and flight variance check.
-        group_by_direction (bool): Whether to group images by drone heading. Default is True.
     """
     if output_file_path and not output_file_path.endswith(".json"):
         raise ValueError("Output file path must have a .json extension.")
+    if output_file_path:
+        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
     image_df = io.create_image_df(input_path, input_path)
     image_df["EXIF"] = image_df.apply(
         lambda row: MetadataParser(row.image_path).exif_data, axis=1

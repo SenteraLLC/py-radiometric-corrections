@@ -1,26 +1,27 @@
 name: imgcorrect-venv
 channels:
   - conda-forge
+channel_priority: strict
 dependencies:
-  - python=3.10
+  - "python>=3.10,<4.0"
   # dev dependencies
-  - pytest
-  - pre_commit
-  - sphinx
-  - sphinx_rtd_theme
-  - m2r
-  - pip
-  - pipenv
+  - "pytest>=7.1.1,<8.0"
+  - "pre-commit>=4.3.0,<5.0"
+  - sphinx=7.0.0
+  - sphinx-rtd-theme=2.0.0
+  - m2r=0.3.1
+  - pip=24.0
+  - pipenv=2026.0.3
   # main dependencies
-  - Pillow
-  - numpy
-  - tifffile
-  - pandas
-  - tqdm
-  - imageio
-  - imagecodecs
+  - "pillow>=9.0.1"
+  - "numpy>=1.19.3,<2.0.0"
+  - "tifffile>=2022.3.25,<2023.0.0"
+  - "pandas>=2.3.0,<3.0.0"
+  - "tqdm>=4.59.0,<5.0.0"
+  - "imageio>=2.19.3,<3.0.0"
+  - "imagecodecs>=2025.3.30"
+  - "urllib3<2"
   - tk
-  # subpackage dependencies
-  # Sentera dependencies
   - pip:
-    - git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v2.0.14
+    - "opencv-contrib-python>=4.6.0,<4.7.0"
+    - "imgparse @ git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v2.0.14"
