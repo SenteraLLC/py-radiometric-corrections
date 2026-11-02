@@ -16,7 +16,10 @@ imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", 
 imageio = "^2.19.3"
 imagecodecs = ">=2025.3.30"
 urllib3 = "<2"
-tk = "^0.1.0"
+tk = { version = "^0.1.0", optional = true }
+
+[tool.poetry.extras]
+tk = ["tk"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.1"

@@ -47,6 +47,9 @@ The Sentera Radiometric Corrections tool will perform corrections on multispectr
         >> conda env create -f environment.yml
         >> conda activate imgcorrect-venv
         >> pip install .
+
+   The GUI's optional Tk dependency can be installed with `conda install tk`.
+        When installing with Poetry, use `poetry install -E tk` to include the `tk` extra.
         
 4) This creates an *imgcorrect-venv* environment that all scripts should be run in and installs the **analyticstest**
    library for the scripts to reference. 
