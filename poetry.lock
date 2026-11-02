@@ -1349,9 +1349,10 @@ all = ["fsspec", "imagecodecs (>=2022.2.22)", "lxml", "matplotlib (>=3.3)", "zar
 name = "tk"
 version = "0.1.0"
 description = "TensorKit is a deep learning helper between Python and C++."
-optional = false
+optional = true
 python-versions = "*"
 groups = ["main"]
+markers = "extra == \"tk\""
 files = [
     {file = "tk-0.1.0-py3-none-any.whl", hash = "sha256:703a69ff0d5ba2bd2f7440582ad10160e4a6561595d33457dc6caa79b9bf4930"},
     {file = "tk-0.1.0.tar.gz", hash = "sha256:60bc8923d5d35f67f5c6bd93d4f0c49d2048114ec077768f959aef36d4ed97f8"},
@@ -1511,7 +1512,10 @@ files = [
 [package.extras]
 test = ["pytest", "pytest-cov"]
 
+[extras]
+tk = ["tk"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "c1460333fb66706ad7120f07314a8f73b3ffbd78b66afa0b7d18ca1d34ac532a"
+content-hash = "5d71f6cc626ccabc7391b40cb20364ce8e2bb51f75fb8d34723dca4b9a5b7e60"
