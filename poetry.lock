@@ -943,6 +943,23 @@ pyyaml = ">=5.1"
 virtualenv = ">=20.10.0"
 
 [[package]]
+name = "pyexiftool"
+version = "0.5.6"
+description = "Python wrapper for exiftool"
+optional = false
+python-versions = ">=3.6"
+groups = ["main"]
+files = [
+    {file = "PyExifTool-0.5.6-py3-none-any.whl", hash = "sha256:ac7d7836d2bf373f20aa558528f6b2222c4c0d896ed28c951a3ff8e6cec05a87"},
+    {file = "PyExifTool-0.5.6.tar.gz", hash = "sha256:22a972c1c212d1ad5f61916fded5057333dcc48fb8e42eed12d2ff9665b367ae"},
+]
+
+[package.extras]
+docs = ["packaging", "sphinx", "sphinx-autoapi", "sphinx-autodoc-typehints", "sphinx-rtd-theme"]
+json = ["orjson", "simplejson", "ujson"]
+test = ["packaging"]
+
+[[package]]
 name = "pygments"
 version = "2.20.0"
 description = "Pygments is a syntax highlighting package written in Python."
@@ -1518,4 +1535,4 @@ tk = ["tk"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "5d71f6cc626ccabc7391b40cb20364ce8e2bb51f75fb8d34723dca4b9a5b7e60"
+content-hash = "e8186ae5f7d8ae54cef5b37364b7b221a5beed3edf1766c0b2542b3bccc01812"
