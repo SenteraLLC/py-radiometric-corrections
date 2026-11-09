@@ -70,6 +70,8 @@ def _get_band_coeff(row):
 
 def _get_ils_scaling(band_row):
     """Calculate ILS scaling factor."""
+    if band_row.band.lower() == "lwir":
+        return 1.0
     parser = MetadataParser(band_row.image_path)
     if parser.make() == "DJI":
         try:
@@ -302,7 +304,7 @@ def get_corrections(
             tag, so fall back to SunSensor if available, if not ILS corrections will be disabled.
             """
             parser = MetadataParser(row.image_path)
-            if row.band == "lwir":
+            if row.band.lower() == "lwir":
                 return 1
             if parser.make() == "DJI":
                 try:
