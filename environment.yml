@@ -22,5 +22,6 @@ dependencies:
   - "imagecodecs>=2025.3.30"
   - "urllib3<2"
   - pip:
+    - "PyExifTool>=0.5.6,<0.6.0"
     - "opencv-contrib-python>=4.6.0,<4.7.0"
     - "imgparse @ git+https://github.com/SenteraLLC/py-image-metadata-parser.git@v2.0.14"

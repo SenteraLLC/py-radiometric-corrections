@@ -2,6 +2,7 @@
 
 import logging
 import tempfile
+from contextlib import ExitStack
 
 import imgparse
 import numpy as np
@@ -10,6 +11,7 @@ from imgparse import MetadataParser, ParsingError
 from PIL import Image
 from tqdm import tqdm
 
+import exiftool
 from imgcorrect import detect_panel, io, metadata, zenith_co
 
 logger = logging.getLogger(__name__)
@@ -67,6 +69,8 @@ def _get_band_coeff(row):
 
 def _get_ils_scaling(band_row):
     """Calculate ILS scaling factor."""
+    if band_row.band.lower() == "lwir":
+        return 1.0
     parser = MetadataParser(band_row.image_path)
     if parser.make() == "DJI":
         try:
@@ -299,7 +303,7 @@ def get_corrections(
             tag, so fall back to SunSensor if available, if not ILS corrections will be disabled.
             """
             parser = MetadataParser(row.image_path)
-            if row.band == "lwir":
+            if row.band.lower() == "lwir":
                 return 1
             if parser.make() == "DJI":
                 try:
@@ -429,9 +433,26 @@ def correct_images(
         # Copy EXIF:
         logger.info("Writing EXIF data...")
         # progress_apply is tqdm version of apply
-        image_df.progress_apply(
-            lambda row: metadata.copy_exif(row, exiftool_path), axis=1
-        )
+        with ExitStack() as stack:
+            sessions = {}
+
+            def copy_metadata(row):
+                make = MetadataParser(row.image_path).make()
+                config_file = {
+                    "DJI": "cfg/dji.cfg",
+                    "Sentera": "cfg/exiftool.cfg",
+                }.get(make)
+                if config_file not in sessions:
+                    sessions[config_file] = stack.enter_context(
+                        exiftool.ExifTool(
+                            executable=exiftool_path,
+                            config_file=config_file,
+                            common_args=[],
+                        )
+                    )
+                metadata.copy_exif(row, sessions[config_file])
+
+            image_df.progress_apply(copy_metadata, axis=1)
 
         # Delete input imagery if requested:
         if delete_original:

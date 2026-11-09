@@ -56,6 +56,15 @@ The Sentera Radiometric Corrections tool will perform corrections on multispectr
         
 If no errors appear, the **imgcorrect** library should be installed correctly.
 
+Metadata writing uses PyExifTool to keep one ExifTool process open per camera
+configuration during each correction batch. ExifTool itself is still required;
+the existing `--exiftool_path` option is unchanged. For an existing Python
+environment, install the new dependency with `python -m pip install "PyExifTool>=0.5.6,<0.6.0"`.
+Direct callers of `copy_exif(row, session)` must now pass a running
+`exiftool.ExifTool` session instead of an executable path. Set its `config_file`
+to `cfg/dji.cfg` for DJI or `cfg/exiftool.cfg` for Sentera, and use
+`common_args=[]` to retain the existing tag conversion behavior.
+
 ### Usage
 The imagery correction in this repository can be used via:
 * Importing the various library functions defined in the package
