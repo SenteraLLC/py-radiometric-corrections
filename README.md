@@ -62,8 +62,11 @@ the existing `--exiftool_path` option is unchanged. For an existing Python
 environment, install the new dependency with `python -m pip install "PyExifTool>=0.5.6,<0.6.0"`.
 Direct callers of `copy_exif(row, session)` must now pass a running
 `exiftool.ExifTool` session instead of an executable path. Set its `config_file`
-to `cfg/dji.cfg` for DJI or `cfg/exiftool.cfg` for Sentera, and use
+to the absolute path of `cfg/dji.cfg` for DJI or `cfg/exiftool.cfg` for Sentera, and use
 `common_args=[]` to retain the existing tag conversion behavior.
+The correction pipeline resolves these files relative to the repository root
+when running from source, or the PyInstaller extraction directory in standalone
+executables, independently of the current working directory.
 
 ### Usage
 The imagery correction in this repository can be used via:
@@ -113,5 +116,4 @@ Optional commands:
 In a Windows 10/11 x64 environment, rebuild the executable with pyinstaller using this command:
 
 		>> pyinstaller correct_images_onefile.spec
-
 

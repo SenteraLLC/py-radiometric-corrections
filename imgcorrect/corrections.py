@@ -1,8 +1,10 @@
 """Radiometric corrections for Sentera sensors."""
 
 import logging
+import sys
 import tempfile
 from contextlib import ExitStack
+from pathlib import Path
 
 import imgparse
 import numpy as np
@@ -432,6 +434,10 @@ def correct_images(
 
         # Copy EXIF:
         logger.info("Writing EXIF data...")
+        config_dir = (
+            Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+            / "cfg"
+        )
         # progress_apply is tqdm version of apply
         with ExitStack() as stack:
             sessions = {}
@@ -439,8 +445,8 @@ def correct_images(
             def copy_metadata(row):
                 make = MetadataParser(row.image_path).make()
                 config_file = {
-                    "DJI": "cfg/dji.cfg",
-                    "Sentera": "cfg/exiftool.cfg",
+                    "DJI": str(config_dir / "dji.cfg"),
+                    "Sentera": str(config_dir / "exiftool.cfg"),
                 }.get(make)
                 if config_file not in sessions:
                     sessions[config_file] = stack.enter_context(
