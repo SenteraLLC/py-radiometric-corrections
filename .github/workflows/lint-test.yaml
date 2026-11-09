@@ -15,13 +15,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Exiftool
-        run: |
-          wget https://sourceforge.net/projects/exiftool/files/Image-ExifTool-13.59.tar.gz/download -O Image-ExifTool-13.59.tar.gz
-          gzip -dc Image-ExifTool-13.59.tar.gz | tar -xf -
-          cd Image-ExifTool-13.59
-          perl Makefile.PL
-          sudo make install
-          cd ..
+        run: apt-get update && apt-get install -y libimage-exiftool-perl
 
       - name: Install poetry dependency manager
         run: pipx install poetry==2.1.2
