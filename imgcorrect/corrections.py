@@ -19,6 +19,9 @@ ROLLING_AVG_TIMESPAN = "3s"
 
 def take_closest_image(df_grouped_by_band, target=2048):
     """Per band, return image with mean reflectance closest to target."""
+    # Thermal output uses temperature conversion, not panel reflectance.
+    if df_grouped_by_band.name.lower() == "lwir":
+        return df_grouped_by_band.iloc[0]
     return df_grouped_by_band.iloc[
         (df_grouped_by_band.mean_reflectance - target).abs().argmin()
     ]

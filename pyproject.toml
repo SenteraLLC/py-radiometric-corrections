@@ -1,20 +1,20 @@
 [tool.poetry]
 name = "imgcorrect"
-version = "2.2.2"
+version = "2.3.0"
 description = "Library to perform various corrections on imagery from supported sensors"
 authors = ["Samuel Williams <sam.williams@sentera.com>", "Joseph Franck <joseph.franck@sentera.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
 Pillow = ">=9.0.1"
-numpy = "^1.19.3"
-tifffile = "^2022.3.25"
-pandas = "^2.3.0"
+numpy = ">=2.0,<3.0"
+tifffile = ">=2025.5.10,<2027.0.0"
+pandas = ">=2.3.0,<4.0"
 tqdm = "^4.59.0"
-opencv-contrib-python = ">=4.6.0,<4.7.0"
+opencv-contrib-python = ">=4.13.0,<5.0"
 imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v2.0.14"}
 imageio = "^2.19.3"
-imagecodecs = ">=2025.3.30"
+imagecodecs = ">=2025.3.30,<2027.0.0"
 urllib3 = "<2"
 tk = { version = "^0.1.0", optional = true }
 
@@ -22,7 +22,7 @@ tk = { version = "^0.1.0", optional = true }
 tk = ["tk"]
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.1.1"
+pytest = ">=8.4.0,<10.0"
 pre-commit = "^4.3.0"
 sphinx = "7.0.0"
 sphinx-rtd-theme = "2.0.0"
