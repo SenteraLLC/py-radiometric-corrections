@@ -19,6 +19,9 @@ ROLLING_AVG_TIMESPAN = "3s"
 
 def take_closest_image(df_grouped_by_band, target=2048):
     """Per band, return image with mean reflectance closest to target."""
+    # Thermal output uses temperature conversion, not panel reflectance.
+    if df_grouped_by_band.name.lower() == "lwir":
+        return df_grouped_by_band.iloc[0]
     return df_grouped_by_band.iloc[
         (df_grouped_by_band.mean_reflectance - target).abs().argmin()
     ]
@@ -67,6 +70,8 @@ def _get_band_coeff(row):
 
 def _get_ils_scaling(band_row):
     """Calculate ILS scaling factor."""
+    if band_row.band.lower() == "lwir":
+        return 1.0
     parser = MetadataParser(band_row.image_path)
     if parser.make() == "DJI":
         try:
@@ -299,7 +304,7 @@ def get_corrections(
             tag, so fall back to SunSensor if available, if not ILS corrections will be disabled.
             """
             parser = MetadataParser(row.image_path)
-            if row.band == "lwir":
+            if row.band.lower() == "lwir":
                 return 1
             if parser.make() == "DJI":
                 try:

@@ -29,6 +29,7 @@ jobs:
       - name: Setup Python environment
         uses: actions/setup-python@v4.7.1
         with:
+          python-version: "3.14"
           cache: poetry
 
       - name: Enforce style guides and lint rules
