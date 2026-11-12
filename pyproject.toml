@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "imgcorrect"
-version = "2.2.3"
+version = "2.2.4"
 description = "Library to perform various corrections on imagery from supported sensors"
 authors = ["Samuel Williams <sam.williams@sentera.com>", "Joseph Franck <joseph.franck@sentera.com>"]
 
@@ -11,7 +11,7 @@ numpy = ">=2.0,<3.0"
 tifffile = ">=2025.5.10,<2027.0.0"
 pandas = ">=2.3.0,<4.0"
 tqdm = "^4.59.0"
-opencv-contrib-python = ">=4.13.0,<5.0"
+opencv-python-headless = ">=4.13.0,<5.0"
 imgparse = {git = "https://github.com/SenteraLLC/py-image-metadata-parser.git", tag = "v2.0.14"}
 imageio = "^2.19.3"
 imagecodecs = ">=2025.3.30,<2027.0.0"
