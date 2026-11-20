@@ -62,9 +62,6 @@ def extract_panel_bounds(image):
     # |
     # |
     # v +Y
-    dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250)
-    corners, ids, rejected_img_points = cv.aruco.detectMarkers(image, dictionary)
-
     # --- CORE CORRECTION FOR NIR DETECTION ---
     # 1. Ensure we are working with a clean, single-channel grayscale copy
     if len(image.shape) == 3:
@@ -77,17 +74,12 @@ def extract_panel_bounds(image):
         gray = cv.normalize(gray, None, 0, 255, cv.NORM_MINMAX)
 
     # 3. Setup ArUco dictionary and standard parameters
-    try:
-        dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250)
-        parameters = cv.aruco.DetectorParameters_create()
-    except AttributeError:
-        dictionary = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_6X6_250)
-        parameters = cv.aruco.DetectorParameters()
+    dictionary = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_6X6_250)
+    parameters = cv.aruco.DetectorParameters()
+    detector = cv.aruco.ArucoDetector(dictionary, parameters)
 
     # --- ATTEMPT 1: Standard Search (Optimized for Red Edge, Red, Green, Blue) ---
-    corners, ids, rejected_img_points = cv.aruco.detectMarkers(
-        gray, dictionary, parameters=parameters
-    )
+    corners, ids, rejected_img_points = detector.detectMarkers(gray)
 
     # --- ATTEMPT 2: Aggressive Search Fallback (Only triggers if Attempt 1 fails, e.g., NIR) ---
     if ids is None:
@@ -100,9 +92,8 @@ def extract_panel_bounds(image):
         clahe = cv.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
         enhanced_gray = clahe.apply(gray)
 
-        corners, ids, rejected_img_points = cv.aruco.detectMarkers(
-            enhanced_gray, dictionary, parameters=parameters
-        )
+        detector.setDetectorParameters(parameters)
+        corners, ids, rejected_img_points = detector.detectMarkers(enhanced_gray)
     # --- END OF CORRECTION CODE ---
 
     # if at least one marker detected

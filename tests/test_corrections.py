@@ -3,12 +3,16 @@ import shutil
 
 import cv2 as cv
 import numpy as np
+import pandas as pd
 import pytest
+import tifffile as tf
 from PIL import Image
 
 import imgcorrect
 import imgcorrect.zenith_co as zenith_co
+from imgcorrect.corrections import take_closest_image
 from imgcorrect.dataset import multispectral_ils_check
+from imgcorrect.detect_panel import extract_panel_bounds
 
 EXIFTOOL_PATH = (
     os.path.join(
@@ -21,37 +25,55 @@ EXIFTOOL_PATH = (
 )
 
 
-def test_aruco_marker_detection():
+@pytest.mark.parametrize("marker_id", [23, 63, 217, 220])
+def test_aruco_marker_detection(marker_id):
     """Test that all four supported aruco marker IDs (23, 63, 217, 220) can be detected."""
-    dictionary = cv.aruco.Dictionary_get(cv.aruco.DICT_6X6_250)
+    image = np.asarray(Image.open(f"tests/aruco_markers/aruco_{marker_id}.png")).astype(
+        np.uint8
+    )
+    panel = extract_panel_bounds(image)
 
-    # Test all four marker IDs
-    for marker_id in [23, 63, 217, 220]:
-        test_image_path = f"tests/aruco_markers/aruco_{marker_id}.png"
+    assert panel is not None
+    assert panel.aruco_id == marker_id
 
-        # Skip test if image doesn't exist
-        if not os.path.exists(test_image_path):
-            print(f"Skipping test: {test_image_path} not found")
-            continue
 
-        # Load the test image
-        image = np.asarray(Image.open(test_image_path)).astype(np.uint8)
+def test_aruco_no_marker():
+    assert extract_panel_bounds(np.zeros((100, 100), dtype=np.uint8)) is None
 
-        # Convert to grayscale if needed
-        if len(image.shape) == 3:
-            image_gray = cv.cvtColor(image, cv.COLOR_RGB2GRAY)
-        else:
-            image_gray = image
 
-        # Detect aruco markers
-        corners, ids, rejected = cv.aruco.detectMarkers(image_gray, dictionary)
+def test_aruco_unsupported_marker():
+    dictionary = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_6X6_250)
+    marker = cv.aruco.generateImageMarker(dictionary, 99, 100)
+    image = np.pad(marker, 20, constant_values=255)
 
-        # Verify the expected marker was detected
-        assert ids is not None, f"No aruco markers detected in {test_image_path}"
-        assert (
-            marker_id in ids
-        ), f"Aruco marker {marker_id} not detected. Found: {ids.flatten().tolist()}"
-        print(f"Successfully detected aruco marker ID: {marker_id}")
+    assert extract_panel_bounds(image) is None
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.uint16])
+def test_tiff_codec_round_trip(tmp_path, dtype):
+    image = np.arange(100, dtype=dtype).reshape(10, 10)
+    path = tmp_path / "corrected.tif"
+    tf.imwrite(path, image, compression="deflate")
+
+    restored = tf.imread(path)
+    assert restored.dtype == image.dtype
+    np.testing.assert_array_equal(restored, image)
+
+
+def test_thermal_calibration_does_not_require_panel_reflectance():
+    calibration_df = pd.DataFrame(
+        {
+            "band": ["lwir", "lwir", "red", "red"],
+            "mean_reflectance": [np.nan, np.nan, 1000.0, 2000.0],
+            "image_path": ["thermal1.tif", "thermal2.tif", "red1.tif", "red2.tif"],
+        }
+    )
+    selected = calibration_df.groupby("band")[["mean_reflectance", "image_path"]].apply(
+        take_closest_image
+    )
+
+    assert selected.loc["lwir", "image_path"] == "thermal1.tif"
+    assert selected.loc["red", "image_path"] == "red2.tif"
 
 
 def test_aruco_marker_coefficient_selection():
