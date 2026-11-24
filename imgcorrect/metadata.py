@@ -2,10 +2,13 @@
 
 import logging
 import subprocess
+from pathlib import Path
 
 from imgparse import MetadataParser
 
 logger = logging.getLogger(__name__)
+
+CFG_DIR = Path(__file__).parent / "cfg"
 
 
 def copy_exif(image_df_row, exiftool_path):
@@ -17,9 +20,9 @@ def copy_exif(image_df_row, exiftool_path):
     ]
     make = parser.make()
     if make == "DJI":
-        command += ["-config", "cfg/dji.cfg"]
+        command += ["-config", str(CFG_DIR / "dji.cfg")]
     elif make == "Sentera":
-        command += ["-config", "cfg/exiftool.cfg"]
+        command += ["-config", str(CFG_DIR / "exiftool.cfg")]
     if image_df_row.band.lower() == "lwir":
         command += [
             "-overwrite_original",
