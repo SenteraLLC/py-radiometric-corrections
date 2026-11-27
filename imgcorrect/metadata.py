@@ -1,25 +1,17 @@
 """Copy and modify image metadata."""
 
 import logging
-import subprocess
 
 from imgparse import MetadataParser
 
 logger = logging.getLogger(__name__)
 
 
-def copy_exif(image_df_row, exiftool_path):
+def copy_exif(image_df_row, exiftool_session):
     """Copy image metadata with necessary changes from original image to corrected image."""
     parser = MetadataParser(image_df_row.image_path)
 
-    command = [
-        exiftool_path,
-    ]
-    make = parser.make()
-    if make == "DJI":
-        command += ["-config", "cfg/dji.cfg"]
-    elif make == "Sentera":
-        command += ["-config", "cfg/exiftool.cfg"]
+    command = []
     if image_df_row.band.lower() == "lwir":
         command += [
             "-overwrite_original",
@@ -53,13 +45,8 @@ def copy_exif(image_df_row, exiftool_path):
             f"-xmp-Camera:CentralWavelength={cent_arr[i]}",
             f"-xmp-Camera:WavelengthFWHM={fwhm_arr[i]}",
         ]
-    command.append(image_df_row.temp_path)
+    command.append(str(image_df_row.temp_path))
 
-    # Use CREATE_NO_WINDOW flag on Windows if available (Python 3.7+)
-    kwargs = {"capture_output": True}
-    if hasattr(subprocess, "CREATE_NO_WINDOW"):
-        kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
-
-    results = subprocess.run(command, **kwargs)
-    if results.returncode != 0:
-        raise ValueError("Exiftool command did not run successfully.")
+    exiftool_session.execute(*command)
+    if exiftool_session.last_status != 0:
+        raise ValueError(f"ExifTool failed: {exiftool_session.last_stderr}")
